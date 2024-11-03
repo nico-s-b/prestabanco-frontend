@@ -1,14 +1,13 @@
 import axios from "axios";
 
 const prestabancoBackendServer = import.meta.env.VITE_PRESTABANCO1_BACKEND_SERVER;
-const prestabancoBackendPort = import.meta.env.MODE === 'production' 
-    ? '' 
-    : `:${import.meta.env.VITE_PRESTABANCO1_BACKEND_PORT || 80}`;
+const prestabancoBackendPort = import.meta.env.VITE_PRESTABANCO1_BACKEND_PORT;
 
-const baseURL = `http://${prestabancoBackendServer}${prestabancoBackendPort}`;
+//console.log(prestabancoBackendServer)
+//console.log(prestabancoBackendPort)
 
 const httpClient = axios.create({
-    baseURL: baseURL,
+    baseURL: `http://${prestabancoBackendServer}:${prestabancoBackendPort}`,
     headers: {
         'Content-Type': 'application/json'
     }
