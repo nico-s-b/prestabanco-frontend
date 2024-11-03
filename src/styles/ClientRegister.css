@@ -1,0 +1,25 @@
+.client-register form {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    margin: 0 auto;
+  }
+  
+  .client-register input {
+    margin-bottom: 10px;
+    padding: 8px;
+    font-size: 16px;
+  }
+  
+  .client-register button {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .client-register button:hover {
+    background-color: #155a9c;
+  }

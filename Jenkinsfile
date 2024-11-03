@@ -1,10 +1,7 @@
 pipeline {
     agent any
-    tools{
-        maven 'maven'
-    }
     stages{
-        stage('Build maven'){
+        stage('Build dist'){
             steps{
                checkout([$class: 'GitSCM', 
                     branches: [[name: '*/main']], 

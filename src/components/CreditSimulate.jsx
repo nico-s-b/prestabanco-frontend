@@ -21,7 +21,12 @@ const CreditSimulate = () => {
     setSimulationResult(null); 
 
     try {
-      const response = await creditService.simulate(creditType, loanPeriod, creditMount, propertyValue);
+      const response = await creditService.simulate(
+        creditType, 
+        loanPeriod, 
+        creditMount, 
+        propertyValue
+      );
       setSimulationResult(response.data);
       console.log("Resultado:", { response });
 
@@ -92,7 +97,8 @@ const CreditSimulate = () => {
         </label>
         <br />
         <br />
-        <button type="submit">Simular Crédito</button>
+        <Button variant="contained" color="secondary" type="submit">Simular</Button>
+        <br /><br />
       </form>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
@@ -122,8 +128,8 @@ const CreditSimulate = () => {
         <Typography variant="body1" sx={{ mr: 2 }}>
           ¿Quieres pedir un crédito? Inicia sesión o registrate con nosotros
         </Typography>
-        <Button color="secondary"  onClick={handleLoginClick}>Login</Button>
-        <Button color="inherit" onClick={handleRegisterClick}>Register</Button>
+        <Button color="secondary"  onClick={handleLoginClick}>Iniciar sesión</Button>
+        <Button color="inherit" onClick={handleRegisterClick}>Registrarse</Button>
       </>              
     )}
     </div></>

@@ -71,12 +71,12 @@ export default function Navbar() {
               <Typography variant="body1" sx={{ mr: 2 }}>
                 Bienvenido, {userName}
               </Typography>
-              <Button color="inherit" onClick={handleLogoutClick}>Logout</Button>
+              <Button color="inherit" onClick={handleLogoutClick}>Cerrar sesión</Button>
             </>
           ) : (
             <>
-              <Button color="inherit" onClick={handleLoginClick}>Login</Button>
-              <Button color="inherit" onClick={handleRegisterClick}>Register</Button>
+              <Button color="inherit" onClick={handleLoginClick}>Iniciar sesión</Button>
+              <Button color="inherit" onClick={handleRegisterClick}>Registrarse</Button>
             </>              
           )}
 

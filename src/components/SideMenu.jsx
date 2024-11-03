@@ -15,11 +15,12 @@ import { useNavigate } from "react-router-dom";
 
 export default function Sidemenu({ open, toggleDrawer }) {
   const navigate = useNavigate();
+  const userId = localStorage.getItem('userId');
   let profileURL = "";
   if (1) {
-    profileURL = "/client/:id";
+    profileURL = `/client/${userId}`;
   } else {
-    profileURL = "/executive/:id";
+    profileURL = `/executive/${userId}`;
   }
   
   const listOptions = () => (

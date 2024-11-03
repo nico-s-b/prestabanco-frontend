@@ -4,7 +4,7 @@ const getAllClients = () => {
   return httpClient.get('/api/v1/clients/');
 };
 
-const getClientsById = (id) => {
+const getClientById = (id) => {
   return httpClient.get(`/api/v1/clients/${id}`);
 };
 
@@ -16,4 +16,4 @@ const registerClients = (data) => {
     return httpClient.post('/api/v1/clients/', data);
 }
 
-export default { getAllClients,  getClientsById , updateClients ,registerClients};
+export default { getAllClients,  getClientById , updateClients ,registerClients};
