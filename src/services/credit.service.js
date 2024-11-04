@@ -9,8 +9,12 @@ const getCreditById = (id) => {
 };
 
 const getCreditsByClient = (id) => {
-    return httpClient.get(`/api/v1/credits/${id}/credits`);
-  };
+  return httpClient.get(`/api/v1/credits/${id}/credits`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+};
 
 const updateCredit = (id, data) => {
     return httpClient.put(`/api/v1/credits/${id}`, data);

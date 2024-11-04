@@ -71,8 +71,8 @@ const CreditRequest = () => {
           userId
         );
         console.log("Resultado:", { response });
-        alert("Completa tu información personal para continuar con la solicitud de crédito.");
-        navigate(`/client/${userId}`);
+        alert("Completa tu información financiera para continuar con la solicitud de crédito.");
+        navigate(`/client/info/${userId}`);
       } catch (error) {
         setError("Error al solicitar el crédito. Verifica los valores ingresados.");
         console.error("Solicitud fallida:", error);

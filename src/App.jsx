@@ -14,6 +14,7 @@ import ClientInfo from './components/ClientInfo';
 import ClientRegister from './components/ClientRegister';
 import ExecutiveProfile from './components/ExecutiveProfile';
 import Login from './components/Login';
+import Documents from './components/Documents';
 
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
               <Route path="/executive/:id" element={<ExecutiveProfile/>} />
               <Route path="/credit/eval/:id" element={<CreditEval/>} />
               <Route path="/credit/confirm/:id" element={<CreditConfirm/>} />
+              <Route path="/documents/:id" element={<Documents/>} />
               <Route path="*" element={<NotFound/>} />
             </Routes>
           </div>
