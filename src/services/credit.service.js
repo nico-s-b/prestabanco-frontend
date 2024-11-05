@@ -16,6 +16,10 @@ const getCreditsByClient = (id) => {
   });
 };
 
+const createCredit = (data) => {
+  return httpClient.post(`/api/v1/credits/`, data);
+};
+
 const updateCredit = (id, data) => {
     return httpClient.put(`/api/v1/credits/${id}`, data);
 };
@@ -24,21 +28,23 @@ const deleteCredit = (id) => {
     return httpClient.delete(`/api/v1/credits/${id}`, data);
 };
 
-const simulate = (creditType, loanPeriod, creditMount, propertyValue) => {
+const simulate = (creditType, loanPeriod, creditMount, propertyValue, annualRate) => {
     return httpClient.post(`/api/v1/credits/simulate`, {
         creditType,
         loanPeriod,
         creditMount,
-        propertyValue
+        propertyValue,
+        annualRate
     });
 };
 
-const request = (creditType, loanPeriod, creditMount, propertyValue, userId) => {
+const request = (creditType, loanPeriod, creditMount, propertyValue, annualRate, userId) => {
     return httpClient.post('/api/v1/credits/request', {
         creditType,
         loanPeriod,
         creditMount,
-        propertyValue
+        propertyValue,
+        annualRate
     }, {
         params: { clientId: userId }
       });
@@ -51,4 +57,4 @@ const restrictions = (data) => {
 };
 
 export default { getAllCredits,  getCreditById , getCreditsByClient, updateCredit , 
-    deleteCredit, simulate, restrictions, request};
+  createCredit , deleteCredit, simulate, restrictions, request};

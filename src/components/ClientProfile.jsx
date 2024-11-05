@@ -40,7 +40,7 @@ const ClientProfile = () => {
   }
 
   const handleEditClick = (id) => {
-    navigate(`/credit/edit/${id}`);
+    navigate(`/credit/${id}`);
   }
 
   const handleDelete = (id) => {

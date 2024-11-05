@@ -2,22 +2,15 @@ import React from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { format } from "date-fns";
+import { getCreditState, getCreditType, getRequiredDocumentsCount } from "./CreditUtils";
 
 const CreditTable = ({ credits, handleEditClick, handleDelete }) => {
-    const getRequiredDocumentsCount = (creditType) => {
-        if (creditType === "FIRSTHOME" || creditType === "REMODELING") {
-          return 3;
-        } else if (creditType === "SECONDHOME" || creditType === "COMERCIAL") {
-          return 4;
-        }
-        return 0; 
-      };
-    
   return (
     <div>
       {credits && credits.length > 0 ? (
         <>
-          <p>Lista de créditos</p>
+          <p>Solicitudes de crédito</p>
           <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
               <TableHead>
@@ -26,6 +19,9 @@ const CreditTable = ({ credits, handleEditClick, handleDelete }) => {
                   <TableCell align="left" sx={{ fontWeight: "bold" }}>Tipo de crédito</TableCell>
                   <TableCell align="right" sx={{ fontWeight: "bold" }}>Monto</TableCell>
                   <TableCell align="right" sx={{ fontWeight: "bold" }}>Plazo (años)</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: "bold" }}>Interés (anual)</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: "bold" }}>Fecha solicitud</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: "bold" }}>Última actualización</TableCell>
                   <TableCell align="right" sx={{ fontWeight: "bold" }}>Estado</TableCell>
                   <TableCell align="right" sx={{ fontWeight: "bold" }}>Documentos</TableCell>
                   <TableCell align="left" sx={{ fontWeight: "bold" }}>Operaciones</TableCell>
@@ -38,10 +34,13 @@ const CreditTable = ({ credits, handleEditClick, handleDelete }) => {
                 return (
                 <TableRow key={credit.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
                     <TableCell align="left">{index + 1}</TableCell>
-                    <TableCell align="left">{credit.creditType}</TableCell>
-                    <TableCell align="right">{credit.creditMount}</TableCell>
+                    <TableCell align="left">{getCreditType(credit.creditType)}</TableCell>
+                    <TableCell align="right">{credit.creditMount.toLocaleString("es-CL")}</TableCell>
                     <TableCell align="right">{credit.loanPeriod}</TableCell>
-                    <TableCell align="right">{credit.state}</TableCell>
+                    <TableCell align="right">{credit.annualRate}</TableCell>
+                    <TableCell align="right">{format(new Date(credit.requestDate), 'dd-MM-yyyy')}</TableCell>
+                    <TableCell align="right">{format(new Date(credit.lastUpdateDate), 'dd-MM-yyyy')}</TableCell>
+                    <TableCell align="right">{getCreditState(credit.state)}</TableCell>
                     <TableCell align="right">{`${uploadedDocumentsCount}/${requiredDocumentsCount}`}</TableCell>
                     <TableCell>
                     <Button

@@ -3,14 +3,16 @@ import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
 import creditService from "../services/credit.service";
 import Button from "@mui/material/Button";
+import { fetchRestrictions, renderNeededDocuments } from "./CreditUtils";
 
 const CreditRequest = () => {
   const [creditType, setCreditType] = useState("");
   const [loanPeriod, setLoanPeriod] = useState("");
   const [creditMount, setCreditMount] = useState("");
   const [propertyValue, setPropertyValue] = useState("");
+  const [annualRate, setAnnualRate] = useState("");
 
-  const [userId, setUserId] = useState(!!localStorage.getItem("userId"));
+  const [userId, setUserId] = useState(!!localStorage.getItem("userId"));  
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
 
   const [isValuesEntered, setIsValuesEntered] = useState(false);
@@ -24,24 +26,21 @@ const CreditRequest = () => {
   
   useEffect(() => {
     if (isValuesEntered) {
-      const fetchRestrictions = async () => {
+      const getRestrictions = async () => {
         try {
-          const response = await creditService.restrictions({
-            creditType,
-            propertyValue
-          });
-          setRestrictions(response.data);
-          console.log("Restricciones:", { response });
+          const restrictionsData = await fetchRestrictions(creditType, propertyValue);
+          setRestrictions(restrictionsData);
+          console.log("Restricciones:", restrictionsData);
         } catch (error) {
           console.error("Error al obtener restricciones:", error);
         }
       };
-
-      fetchRestrictions();
+  
+      getRestrictions();
     }
   }, [isValuesEntered, creditType, propertyValue]);
 
-  const handleChange = () => {
+  const handleValueChange = () => {
     if (creditType && propertyValue) {
       setIsValuesEntered(true);
     }
@@ -55,29 +54,46 @@ const CreditRequest = () => {
     }
   };
 
+  const handleChange = (e, setter) => {
+    const { value } = e.target;
+    const rawValue = value.replace(/\./g, ""); // Remueve puntos
+    setter(rawValue);    
+  };
+
+  const handleSlideChange = (e, setValue) => {
+    const value = parseFloat(e.target.value);
+    setValue(value);
+  };
+
+  const formatNumber = (value) => {
+    return value ? parseInt(value, 10).toLocaleString("es-CL") : "";
+  };
+
   async function handleSubmit(event) {
-      event.preventDefault();
-      setError("");
+    event.preventDefault();
+    setError("");
 
-      const userId = Number(localStorage.getItem('userId'));
-      console.log("userId:", userId);
+    const userId = Number(localStorage.getItem('userId'));
 
-      try {
-        const response = await creditService.request(
-          creditType,
-          loanPeriod,
-          creditMount,
-          propertyValue,
-          userId
-        );
-        console.log("Resultado:", { response });
-        alert("Completa tu información financiera para continuar con la solicitud de crédito.");
-        navigate(`/client/info/${userId}`);
-      } catch (error) {
-        setError("Error al solicitar el crédito. Verifica los valores ingresados.");
-        console.error("Solicitud fallida:", error);
-      }
+    try {
+      const response = await creditService.request(
+        creditType,
+        loanPeriod,
+        creditMount,
+        propertyValue,
+        annualRate,
+        userId
+      );
+      console.log("Solicitud exitosa:", response);
+      const creditId = response.data.id;
+      console.log("Credit ID:", creditId);
+      alert("Sube los documentos requeridos para continuar con la solicitud de crédito.");
+      navigate(`/credit/${creditId}`);
+    } catch (error) {
+      setError("Error al solicitar el crédito. Verifica los valores ingresados.");
+      console.error("Solicitud fallida:", error);
     }
+  };
   
   const handleLoginClick = async () => {
     navigate("/login");
@@ -95,7 +111,7 @@ const CreditRequest = () => {
           Tipo de Crédito:
           <select 
             value={creditType} 
-            onChange={(e) => { setCreditType(e.target.value); handleChange() }} required>
+            onChange={(e) => { setCreditType(e.target.value); handleValueChange() }} required>
             <option value="">Seleccionar</option>
             <option value="FIRSTHOME">Primera Vivienda</option>
             <option value="SECONDHOME">Segunda Vivienda</option>
@@ -107,9 +123,9 @@ const CreditRequest = () => {
         <label>
           Valor de la Propiedad:
           <input
-            type="number"
-            value={propertyValue}
-            onChange={(e) => { setPropertyValue(e.target.value); handleChange() }}
+            type="text"
+            value={formatNumber(propertyValue)}
+            onChange={(e) => { handleChange(e, setPropertyValue);handleValueChange()}}
             required
             min="1" />
         </label>
@@ -122,7 +138,7 @@ const CreditRequest = () => {
               <input
                 type="number"
                 value={loanPeriod}
-                onChange={(e) => {setLoanPeriod(e.target.value) ; handleChange()}}
+                onChange={(e) => {setLoanPeriod(e.target.value) ; handleValueChange()}}
                 max={restrictions.maxLoanPeriod}
                 required
                 min="1" />
@@ -132,22 +148,46 @@ const CreditRequest = () => {
             <label>
               Monto del Crédito:
               <input
-                type="number"
+                type="text"
                 value={creditMount}
-                onChange={(e) => {setCreditMount(e.target.value); handleChange()}}
+                onChange={(e) => { handleChange(e, setCreditMount);handleValueChange()}}
                 max={restrictions.maxFinancingMount}
                 required
                 min="1" />
             </label>
-              Valor máximo: {restrictions.maxFinancingMount}
+              Valor máximo: {restrictions.maxFinancingMount.toLocaleString("es-CL")}
+              <br />
+            <label>
+              Interés: {restrictions.minAnnualRate}% -
+              <input
+                type="range"
+                value={annualRate}
+                onChange={(e) => handleSlideChange(e, setAnnualRate)}
+                required
+                min={parseFloat(restrictions.minAnnualRate)}
+                max={parseFloat(restrictions.maxAnnualRate)}
+                step="0.1"/>
+              - {restrictions.maxAnnualRate}% , elegido: {annualRate}%
+            </label>
+
           </>
         ) : (
           <label>
-            Ingresa el tipo de crédito y el valor de la propiedad para continuar con la solicitud de crédito.
+            Ingrese el tipo de crédito y el valor de la propiedad para continuar con la solicitud de crédito.
           </label>
         )}
         
         <br />
+        <br />
+        {creditType && (
+          <>
+            <Typography variant="body1" sx={{ mr: 2 }}>
+              Documentos requeridos:
+            </Typography>
+            {renderNeededDocuments(creditType)}
+          </>
+        )}
+
         <br />
         {isLoggedIn ? (
           <>

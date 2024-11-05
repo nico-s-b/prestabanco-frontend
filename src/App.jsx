@@ -16,7 +16,6 @@ import ExecutiveProfile from './components/ExecutiveProfile';
 import Login from './components/Login';
 import Documents from './components/Documents';
 
-
 function App() {
   return (
       <Router>
@@ -28,7 +27,7 @@ function App() {
               <Route path="/login" element={<Login/>} />
               <Route path="/credit/simulate" element={<CreditSimulate/>} />
               <Route path="/credit/request" element={<CreditRequest/>} />
-              <Route path="/credit/edit/:id" element={<CreditView/>} />
+              <Route path="/credit/:id" element={<CreditView/>} />
               <Route path="/credit/all" element={<CreditList/>} />
               <Route path="/client/:id" element={<ClientProfile/>} />
               <Route path="/client/info/:id" element={<ClientInfo/>} />
