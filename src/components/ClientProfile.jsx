@@ -43,9 +43,15 @@ const ClientProfile = () => {
     navigate(`/credit/${id}`);
   }
 
-  const handleDelete = (id) => {
-    navigate(`/credit/edit/${id}`);
-  }
+  const handleDelete = async (id) => {
+    try {
+      const response = await creditService.cancelCredit(id);
+      alert("El crédito ha sido cancelado exitosamente.");
+    } catch (error) {
+      console.error("Error al cancelar el crédito:", error);
+      alert("Hubo un error al cancelar el crédito.");
+    }
+  };
 
   return (
     <div>

@@ -3,7 +3,7 @@ import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
 import creditService from "../services/credit.service";
 import Button from "@mui/material/Button";
-import CreditForm from "./CreditForm"; // Importa CreditForm
+import CreditForm from "./CreditForm";
 import { textNeededDocuments } from "./CreditUtils";
 
 const CreditRequest = () => {
@@ -92,7 +92,11 @@ const CreditRequest = () => {
             <Typography variant="body1" sx={{ mr: 2 }}>
               Documentos requeridos:
             </Typography>
-            {textNeededDocuments(creditType)}
+            <ul style={{ textAlign: "left" }}>
+              {textNeededDocuments(creditType).map((doc, index) => (
+                <li key={index}>{doc}</li>
+              ))}
+            </ul>
           </>
         )}
 

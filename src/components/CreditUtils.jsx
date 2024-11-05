@@ -69,7 +69,6 @@ export const renderNeededDocuments = (creditType) => {
   return documents;
 };
   
-
 export const textNeededDocuments = (creditType) => {
   let documents = [];
 
@@ -99,16 +98,12 @@ export const textNeededDocuments = (creditType) => {
       "Presupuesto de remodelación",
       "Certificado de avalúo actualizado"
     ];
+
   }
 
-  return (
-    <ul style={{ textAlign: "left" }}>
-      {documents.map((doc, index) => (
-        <li key={index}>{doc}</li>
-      ))}
-    </ul>
-  );
+  return documents;
 };
+
 
 export const getCreditState = (state) => {
     if (state === "INITIALREV") {
