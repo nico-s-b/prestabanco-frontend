@@ -24,7 +24,53 @@ export const getRequiredDocumentsCount = (creditType) => {
     return 0; 
   };
 
+export const DocumentType = {
+  INCOMECERTIFY: "INCOMECERTIFY",
+  VALUATIONCERTIFY: "VALUATIONCERTIFY",
+  CREDITREPORT: "CREDITREPORT",
+  FIRSTHOUSEDEED: "FIRSTHOUSEDEED",
+  FINANCIALSTATUSREPORT: "FINANCIALSTATUSREPORT",
+  BUSINESSPLAN: "BUSINESSPLAN",
+  REMODELINGBUDGET: "REMODELINGBUDGET",
+  UPDATEDVALUATIONCERTIFY: "UPDATEDVALUATIONCERTIFY",
+};
+
 export const renderNeededDocuments = (creditType) => {
+  let documents = [];
+
+  if (creditType === "FIRSTHOME") {
+    documents = [
+      DocumentType.INCOMECERTIFY,
+      DocumentType.VALUATIONCERTIFY,
+      DocumentType.CREDITREPORT,
+    ];
+  } else if (creditType === "SECONDHOME") {
+    documents = [
+      DocumentType.INCOMECERTIFY,
+      DocumentType.VALUATIONCERTIFY,
+      DocumentType.FIRSTHOUSEDEED,
+      DocumentType.CREDITREPORT,
+    ];
+  } else if (creditType === "COMERCIAL") {
+    documents = [
+      DocumentType.FINANCIALSTATUSREPORT,
+      DocumentType.INCOMECERTIFY,
+      DocumentType.VALUATIONCERTIFY,
+      DocumentType.BUSINESSPLAN,
+    ];
+  } else if (creditType === "REMODELING") {
+    documents = [
+      DocumentType.INCOMECERTIFY,
+      DocumentType.REMODELINGBUDGET,
+      DocumentType.UPDATEDVALUATIONCERTIFY,
+    ];
+  }
+
+  return documents;
+};
+  
+
+export const textNeededDocuments = (creditType) => {
   let documents = [];
 
   if (creditType === "FIRSTHOME") {
