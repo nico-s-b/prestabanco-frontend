@@ -12,7 +12,7 @@ const CreditForm = ({
       const getRestrictions = async () => {
         try {
           const restrictionsData = await fetchRestrictions(creditType, propertyValue);
-          setRestrictions(restrictionsData);
+          setRestrictions(restrictionsData); 
         } catch (error) {
           console.error("Error al obtener restricciones:", error);
         }
@@ -20,6 +20,8 @@ const CreditForm = ({
       getRestrictions();
     }
   }, [isValuesEntered, creditType, propertyValue, setRestrictions]);
+  
+
 
   const handleValueChange = () => {
     if (creditType && propertyValue) {

@@ -51,9 +51,7 @@ const request = (creditType, loanPeriod, creditMount, propertyValue, annualRate,
 };
 
 const restrictions = (data) => {
-    return httpClient.post('/api/v1/credits/restrictions', {
-        params: data
-      });
+  return httpClient.post('/api/v1/credits/restrictions', data);
 };
 
 const validateDocs = (id) => {
