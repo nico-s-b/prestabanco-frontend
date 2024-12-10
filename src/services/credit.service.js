@@ -28,16 +28,6 @@ const cancelCredit  = (id) => {
     return httpClient.get(`/api/v1/credits/cancel${id}`);
 };
 
-const simulate = (creditType, loanPeriod, creditMount, propertyValue, annualRate) => {
-    return httpClient.post(`/api/v1/credits/simulate`, {
-        creditType,
-        loanPeriod,
-        creditMount,
-        propertyValue,
-        annualRate
-    });
-};
-
 const request = (creditType, loanPeriod, creditMount, propertyValue, annualRate, userId) => {
     return httpClient.post('/api/v1/credits/request', {
         creditType,
@@ -50,13 +40,5 @@ const request = (creditType, loanPeriod, creditMount, propertyValue, annualRate,
       });
 };
 
-const restrictions = (data) => {
-  return httpClient.post('/api/v1/credits/restrictions', data);
-};
-
-const validateDocs = (id) => {
-  return httpClient.get(`/api/v1/credits/docvalid?id=${id}`);
-};
-
 export default { getAllCredits,  getCreditById , getCreditsByClient, updateCredit , 
-  createCredit , simulate, restrictions, request, validateDocs , cancelCredit };
+  createCredit , request, cancelCredit };

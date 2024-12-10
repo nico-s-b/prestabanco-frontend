@@ -11,7 +11,7 @@ import CreditList from './components/CreditList';
 import CreditConfirm from './components/CreditConfirm';
 import ClientProfile from './components/ClientProfile';
 import ClientInfo from './components/ClientInfo';
-import ClientRegister from './components/ClientRegister';
+import Register from './components/Register';
 import ExecutiveProfile from './components/ExecutiveProfile';
 import Login from './components/Login';
 import Documents from './components/Documents';
@@ -31,7 +31,7 @@ function App() {
               <Route path="/credit/all" element={<CreditList/>} />
               <Route path="/client/:id" element={<ClientProfile/>} />
               <Route path="/client/info/:id" element={<ClientInfo/>} />
-              <Route path="/client/register" element={<ClientRegister/>} />
+              <Route path="/register" element={<Register/>} />
               <Route path="/executive/:id" element={<ExecutiveProfile/>} />
               <Route path="/credit/eval/:id" element={<CreditEval/>} />
               <Route path="/credit/confirm/:id" element={<CreditConfirm/>} />

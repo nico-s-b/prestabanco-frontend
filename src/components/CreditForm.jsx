@@ -20,8 +20,6 @@ const CreditForm = ({
       getRestrictions();
     }
   }, [isValuesEntered, creditType, propertyValue, setRestrictions]);
-  
-
 
   const handleValueChange = () => {
     if (creditType && propertyValue) {
@@ -64,7 +62,7 @@ const CreditForm = ({
           <option value="">Seleccionar</option>
           <option value="FIRSTHOME">Primera Vivienda</option>
           <option value="SECONDHOME">Segunda Vivienda</option>
-          <option value="COMERCIAL">Comercial (Chile)</option>
+          <option value="COMERCIAL">Comercial</option>
           <option value="REMODELING">Remodelación</option>
         </select>
       </label>

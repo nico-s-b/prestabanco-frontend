@@ -1,7 +1,11 @@
 import axios from "../http-common";
 
-const login = async (data) => {
-    const response = await axios.post('/api/auth/login', data);
+const login = async (data, userType) => {
+    const endpoint =
+      userType === "CLIENT" ? "/api/auth/clients/login" 
+                            : "/api/auth/executives/login";
+  
+    const response = await axios.post(endpoint, data);
     //Almacenar token si login exitoso
     if (response.data) {
         localStorage.setItem('token', response.data.token);

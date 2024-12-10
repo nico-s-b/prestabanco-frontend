@@ -4,13 +4,15 @@ import { useNavigate } from "react-router-dom";
 import Button from "@mui/material/Button";
 import EditIcon from "@mui/icons-material/Edit";
 import creditService from "../services/credit.service";
-import userService from "../services/user.service";
+import userService from "../services/credit.service";
 import CreditTable from "./CreditTable";
+import trackingService from "../services/tracking.service";
 
 const ClientProfile = () => {
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
   const [credits, setCredits] = useState([]);
+  const [trackings, setTrackings] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -23,14 +25,30 @@ const ClientProfile = () => {
           console.error("Error al obtener la información del usuario:", error);
         }
         try{
-          const response = await creditService.getCreditsByClient(userId);
-          setCredits(response.data);
+          const creditResponse = await creditService.getCreditsByClient(userId);
+          setCredits(creditResponse.data);
+
+          const trackingsPromises = creditResponse.data.map(async (credit) => {
+            try {
+              const trackingResponse = await trackingService.getTracking(credit.id);
+              return trackingResponse.data;
+            } catch (error) {
+              console.error(
+                `Error al obtener el tracking del crédito ${credit.id}:`,
+                error
+              );
+              return null;
+            }
+          });
+  
+          const allTrackings = await Promise.all(trackingsPromises); // Esperar solicitudes.
+          setTrackings(allTrackings.filter(Boolean));
+
         } catch (error) {
           console.error("Error al obtener los créditos del usuario:", error);
         }
       }
     };
-
     fetchUserData();
   }, []);
 
@@ -43,7 +61,7 @@ const ClientProfile = () => {
     navigate(`/credit/${id}`);
   }
 
-  const handleDelete = async (id) => {
+  const handleCancel = async (id) => {
     try {
       const response = await creditService.cancelCredit(id);
       alert("El crédito ha sido cancelado exitosamente.");
@@ -78,7 +96,7 @@ const ClientProfile = () => {
       )}
   
       <div>
-        <CreditTable credits={credits} handleEditClick={handleEditClick} handleDelete={handleDelete} />
+        <CreditTable credits={credits} trackings={trackings} handleEditClick={handleEditClick} handleCancel={handleCancel} />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
-import creditService from "../services/credit.service";
+import calculationService from "../services/calculation.service";
 import Button from "@mui/material/Button";
 import CreditForm from "./CreditForm"; // Importa CreditForm
 
@@ -30,7 +30,7 @@ const CreditSimulate = () => {
     setSimulationResult(null);
 
     try {
-      const response = await creditService.simulate(
+      const response = await calculationService.simulate(
         creditType,
         loanPeriod,
         creditMount,
@@ -46,7 +46,7 @@ const CreditSimulate = () => {
   };
 
   const handleLoginClick = () => navigate("/login");
-  const handleRegisterClick = () => navigate("/client/register");
+  const handleRegisterClick = () => navigate("/register");
   const handleRequestClick = () => navigate("/credit/request");
 
   return (

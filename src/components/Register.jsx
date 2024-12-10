@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { formatISO } from "date-fns";
+import { format } from "date-fns";
 import React, { useState } from "react";
 import clientService from "../services/client.service";
+import executiveService from "../services/executive.service";
 import Button from "@mui/material/Button";
-import "./../styles/ClientRegister.css";
+import "./../styles/Register.css";
 
-const ClientRegister = () => {
-
+const UserRegister = () => {
   const [data, setData] = useState({
+    userType: "CLIENT", // Por defecto, será "CLIENT"
     rut: "",
     name: "",
     paternalLastname: "",
@@ -31,16 +32,18 @@ const ClientRegister = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError("");  
+    setError("");
 
-    //birthDate formating for backend (ZonedDateTime)
     const formattedData = {
       ...data,
-      birthDate: formatISO(new Date(data.birthDate))
+      birthDate: format(new Date(data.birthDate), "yyyy-MM-dd'T'HH:mm:ss")
     };
 
     try {
-      const response = await clientService.registerClients(formattedData);
+      const response =
+        data.userType === "CLIENT"
+          ? await clientService.registerClient(formattedData)
+          : await executiveService.registerExecutive(formattedData);
       alert("Registro exitoso. Redirigiendo al inicio de sesión...");
       navigate("/login");
     } catch (error) {
@@ -50,9 +53,19 @@ const ClientRegister = () => {
   };
 
   return (
-    <div className="client-register">
-      <br></br>
+    <div className="user-register">
+      <br />
       <form onSubmit={handleSubmit}>
+        <label>Tipo de Usuario:</label>
+        <select
+          name="userType"
+          value={data.userType}
+          onChange={handleChange}
+          required
+        >
+          <option value="CLIENT">Cliente</option>
+          <option value="EXECUTIVE">Ejecutivo</option>
+        </select>
         <input
           type="text"
           name="rut"
@@ -117,11 +130,11 @@ const ClientRegister = () => {
           placeholder="Contraseña"
           required
         />
-        <Button type="submit">Registrarse</Button>
+        <Button  type="submit">Registrarse</Button >
         {error && <p>{error}</p>}
       </form>
     </div>
   );
 };
-  
-  export default ClientRegister;
+
+export default UserRegister;

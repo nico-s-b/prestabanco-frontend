@@ -5,15 +5,16 @@ import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userType, setUserType] = useState("CLIENT");  
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     
-    const data = { email, password };
+    const data = { email, password, userType };
     try {
-      const response = await loginService.login(data);
+      const response = await loginService.login(data, userType);
       console.log("Login exitoso:", response.data);
 
         const token = localStorage.getItem('token');
@@ -22,7 +23,7 @@ const Login = () => {
         }
 
         const currentUserResponse = await loginService.currentUser();
-        localStorage.setItem('userId', currentUserResponse.data);
+        localStorage.setItem('userId', currentUserResponse.data.userId);
         
         window.dispatchEvent(new Event("storage"));
         navigate("/home");
@@ -37,6 +38,7 @@ const Login = () => {
   return (
     <div>
       <form onSubmit={handleSubmit}>
+
         <div>
           <label htmlFor="email"> Email: </label>
           <input 
@@ -46,6 +48,7 @@ const Login = () => {
             onChange={(e) => setEmail(e.target.value)}
             required/>
         </div>
+
         <div>
           <label htmlFor="password"> Contraseña: </label>
           <input 
@@ -56,6 +59,18 @@ const Login = () => {
             required/>
         </div>
         
+        <div>
+          <label htmlFor="userType">Tipo de Usuario:</label>
+          <select
+            id="userType"
+            value={userType}
+            onChange={(e) => setUserType(e.target.value)}
+          >
+            <option value="CLIENT">Cliente</option>
+            <option value="EXECUTIVE">Ejecutivo</option>
+          </select>
+        </div>
+
         <button type="submit"> Login </button>
         </form>
       {error && <p>{error}</p>}

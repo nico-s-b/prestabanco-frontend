@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import documentService from "../services/document.service";
 import Button from "@mui/material/Button";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { textNeededDocuments } from "./CreditUtils";
-import creditService from "../services/credit.service";
+import trackingService from "../services/tracking.service";
 
 // Mapeo de nombres de tipos de documentos (DocumentType)
 const documentTypeMap = {
@@ -16,12 +18,16 @@ const documentTypeMap = {
   "Certificado de avalúo actualizado": "UPDATEDVALUATIONCERTIFY",
 };
 
-const Documents = ({ creditId, creditType }) => {
+const Documents = ({ creditId, creditType, onDocumentChange }) => {
+  const [documents, setDocuments] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedDocumentLabel, setSelectedDocumentLabel] = useState("");
   const [error, setError] = useState("");
-  const [documents, setDocuments] = useState([]);
-  
+  const fileInputRef = useRef(null);
+    
+  const documentTypeMapReversed = Object.fromEntries(
+    Object.entries(documentTypeMap).map(([key, value]) => [value, key])
+  );
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -43,9 +49,30 @@ const Documents = ({ creditId, creditType }) => {
   const missingDocuments = neededDocuments.filter(
     (docLabel) => !uploadedDocumentTypes.includes(documentTypeMap[docLabel])
   );
-  const currentDocuments = neededDocuments.filter(
-    (docLabel) => uploadedDocumentTypes.includes(documentTypeMap[docLabel])
-  );
+
+  const handleEditClick = async (id) => {
+    try {
+      const document = await documentService.getDocumentById(id);
+      console.log("Editar documento:", document);
+      const tracking = await trackingService.getTracking(creditId);
+      console.log("Estado de la solicitud:", tracking.data);
+      // Aquí puedes implementar la lógica de edición
+    } catch (err) {
+      console.error("Error al editar documento:", err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await documentService.deleteDocument(id);
+      alert("Documento eliminado exitosamente.");
+      setDocuments((prev) => prev.filter((doc) => doc.id !== id)); 
+      if (onDocumentChange) onDocumentChange();
+    } catch (err) {
+      console.error("Error al eliminar documento:", err);
+      setError("No se pudo eliminar el documento.");
+    }
+  };
 
   const handleFileChange = (event) => {
     setSelectedFiles(Array.from(event.target.files));
@@ -57,26 +84,25 @@ const Documents = ({ creditId, creditType }) => {
 
     try {
       for (let file of selectedFiles) {
-        const documentData = {
-          documentType: documentTypeMap[selectedDocumentLabel], // Convierte el nombre humano al tipo enum
-          fileData: file,
-        };
-        await documentService.createOrUpdateDocument(creditId, documentData);
+        const documentType = documentTypeMap[selectedDocumentLabel]; // Convierte el nombre humano al tipo enum
+        await documentService.save(creditId, documentType, file);
+        if (onDocumentChange) onDocumentChange();
       }
       alert("Documentos subidos exitosamente.");
       setSelectedFiles([]); // Limpiar selección
       setSelectedDocumentLabel(""); // Reiniciar selección de tipo de documento
 
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null;
+      }
+
       const response = await documentService.getAllDocumentsByCreditId(creditId);
       setDocuments(response.data || []);
 
-      const validationResponse = await creditService.validateDocs(creditId);
-      if (validationResponse.data.state === "EVALUATING") {
+      const tracking = await trackingService.getTracking(creditId);
+      if (tracking.data.state === "EVALUATING") {
           alert("Todos los documentos requeridos están presentes. La solicitud está en evaluación.");
-      } else {
-          alert("Faltan documentos para completar la solicitud.");
-      }
-
+      } 
     } catch (err) {
       console.error("Error al subir documentos:", err);
       setError("No se pudieron subir los documentos.");
@@ -106,6 +132,7 @@ const Documents = ({ creditId, creditType }) => {
         accept=".pdf"
         multiple
         onChange={handleFileChange}
+        ref={fileInputRef}
       />
       <Button
         variant="contained"
@@ -117,10 +144,32 @@ const Documents = ({ creditId, creditType }) => {
       </Button>
 
       <h3>Documentos Actuales</h3>
-      {currentDocuments.length > 0 ? (
+      {documents.length > 0 ? (
       <ul>
-        {currentDocuments.map((docLabel) => (
-          <li key={docLabel}>{docLabel}</li>
+        {documents.map((doc) => (
+           <li key={doc.id}>
+          {documentTypeMapReversed[doc.documentType] || doc.documentType}
+          <Button
+             variant="contained"
+             color="info"
+             size="small"
+             onClick={() => handleEditClick(doc.id)}
+             style={{ marginLeft: "0.5rem" }}
+             startIcon={<EditIcon />}
+           >
+             Editar
+           </Button>
+           <Button
+             variant="contained"
+             color="error"
+             size="small"
+             onClick={() => handleDelete(doc.id)}
+             style={{ marginLeft: "0.5rem" }}
+             startIcon={<DeleteIcon />}
+           >
+             Borrar
+           </Button>
+         </li>     
         ))}
       </ul>
         ) : (

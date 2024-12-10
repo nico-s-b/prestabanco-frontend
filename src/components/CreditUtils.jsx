@@ -1,9 +1,9 @@
 import React from "react";
-import creditService from "../services/credit.service";
+import calculationService from "../services/calculation.service";
 
 export const fetchRestrictions = async (creditType, propertyValue) => {
   try {
-    const response = await creditService.restrictions({ creditType, propertyValue });
+    const response = await calculationService.restrictions({ creditType, propertyValue });
     return {
       ...response.data,
       minAnnualRate: parseFloat(response.data.minAnnualRate),

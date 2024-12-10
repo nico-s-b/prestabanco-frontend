@@ -5,7 +5,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { format } from "date-fns";
 import { getCreditState, getCreditType, getRequiredDocumentsCount } from "./CreditUtils";
 
-const CreditTable = ({ credits, handleEditClick, handleDelete }) => {
+const CreditTable = ({ credits, trackings, handleEditClick, handleCancel }) => {
   return (
     <div>
       {credits && credits.length > 0 ? (
@@ -29,8 +29,7 @@ const CreditTable = ({ credits, handleEditClick, handleDelete }) => {
               </TableHead>
               <TableBody>
               {credits.map((credit, index) => {
-                const requiredDocumentsCount = getRequiredDocumentsCount(credit.creditType);
-                const uploadedDocumentsCount = credit.documents ? credit.documents.length : 0;
+                const tracking = trackings.find((t) => t.creditId === credit.id);
                 return (
                 <TableRow key={credit.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
                     <TableCell align="left">{index + 1}</TableCell>
@@ -39,9 +38,9 @@ const CreditTable = ({ credits, handleEditClick, handleDelete }) => {
                     <TableCell align="right">{credit.loanPeriod}</TableCell>
                     <TableCell align="right">{credit.annualRate}</TableCell>
                     <TableCell align="right">{format(new Date(credit.requestDate), 'dd-MM-yyyy')}</TableCell>
-                    <TableCell align="right">{format(new Date(credit.lastUpdateDate), 'dd-MM-yyyy')}</TableCell>
-                    <TableCell align="right">{getCreditState(credit.state)}</TableCell>
-                    <TableCell align="right">{`${uploadedDocumentsCount}/${requiredDocumentsCount}`}</TableCell>
+                    <TableCell align="right">{tracking ? format(new Date(tracking.lastUpdateDate), 'dd-MM-yyyy') : "N/A"}</TableCell>
+                      <TableCell align="right">{tracking ? getCreditState(tracking.state) : "Sin estado"}</TableCell>
+                      <TableCell align="right">{tracking ? tracking.docsUploaded : "N/A"}</TableCell>
                     <TableCell>
                     <Button
                         variant="contained"
@@ -57,11 +56,11 @@ const CreditTable = ({ credits, handleEditClick, handleDelete }) => {
                         variant="contained"
                         color="error"
                         size="small"
-                        onClick={() => handleDelete(credit.id)}
+                        onClick={() => handleCancel(credit.id)}
                         style={{ marginLeft: "0.5rem" }}
                         startIcon={<DeleteIcon />}
                     >
-                        Eliminar
+                        Cancelar
                     </Button>
                     </TableCell>
                 </TableRow>

@@ -4,6 +4,7 @@ import { useNavigate , useParams } from "react-router-dom";
 import Button from "@mui/material/Button";
 import EditIcon from "@mui/icons-material/Edit";
 import creditService from "../services/credit.service";
+import trackingService from "../services/tracking.service";
 import { getCreditState, getCreditType } from "./CreditUtils";
 import { Table, TableBody, TableCell, TableContainer, TableRow, Paper } from "@mui/material";
 import Documents from "./Documents";
@@ -12,15 +13,23 @@ const CreditView = () => {
   const navigate = useNavigate();
   const [creditInfo, setCreditInfo] = useState(null);
   const { id } = useParams();
+  const [tracking, setTracking] = useState(null);
+
+  const fetchTracking = async () => {
+    try {
+      const trackingResponse = await trackingService.getTracking(id);
+      setTracking(trackingResponse.data);
+    } catch (error) {
+      console.error("Error al actualizar el tracking:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchCreditInfo = async () => {
-      console.log("Credit ID:", id);
       try {
-        console.log("Credit Info:");
-        const response = await creditService.getCreditById(id);
-        setCreditInfo(response.data);
-        console.log("Credit Info:", response.data);
+        const creditResponse = await creditService.getCreditById(id);
+        setCreditInfo(creditResponse.data);
+        fetchTracking();
       } catch (error) {
         console.error("Error al obtener la información del crédito:", error);
       }
@@ -39,7 +48,7 @@ const CreditView = () => {
     <div>
 
       <h1>Información del Crédito</h1>
-      {creditInfo ? (
+      {creditInfo && tracking ? (
         <>
         <TableContainer component={Paper} sx={{ width: "60%", margin: "0 auto" }}>
          <Table aria-label="credit info table">
@@ -70,11 +79,11 @@ const CreditView = () => {
             </TableRow>
             <TableRow>
               <TableCell>Fecha de última actualización</TableCell>
-              <TableCell>{format(new Date(creditInfo.lastUpdateDate), 'dd-MM-yyyy')}</TableCell>
+              <TableCell>{tracking ? format(new Date(tracking.lastUpdateDate), 'dd-MM-yyyy') : "Cargando..."}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell>Estado de solicitud</TableCell>
-              <TableCell>{getCreditState(creditInfo.state)}</TableCell>
+              <TableCell>{tracking ? getCreditState(tracking.state) : "Cargando..."}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -94,8 +103,8 @@ const CreditView = () => {
     <div>
       <h2>Documentos</h2>
       Sube los documentos requeridos por la solicitud de crédito.
-      <Documents creditId={id} creditType={creditInfo.creditType} />
-    </div>
+      <Documents creditId={id} creditType={creditInfo.creditType} onDocumentChange={fetchTracking} />
+      </div>
     </>
       ) : (
         <p>Cargando la información del crédito...</p>

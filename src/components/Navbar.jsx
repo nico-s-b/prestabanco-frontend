@@ -44,7 +44,7 @@ export default function Navbar() {
   };
 
   const handleRegisterClick = () => {
-    navigate("/client/register");
+    navigate("/register");
   }
 
   return (

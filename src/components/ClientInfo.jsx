@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import clientInfoService from '../services/clientinfo.services'; 
+import evaluationService from '../services/evaluation.service'; 
 import Button from "@mui/material/Button";
 import EditIcon from "@mui/icons-material/Edit";
 import { formatISO, format, parseISO  } from "date-fns";
@@ -40,9 +40,9 @@ const ClientInfo = () => {
       }
 
       try {
-        const accountResponse = await clientInfoService.getAccount(userId);
-        const creditResponse = await clientInfoService.getRecord(userId);
-        const employmentResponse = await clientInfoService.getEmployment(userId);
+        const accountResponse = await evaluationService.getAccount(userId);
+        const creditResponse = await evaluationService.getRecord(userId);
+        const employmentResponse = await evaluationService.getEmployment(userId);
 
         //Formating dates for frontend
         if (accountResponse.data) {
@@ -126,9 +126,9 @@ const ClientInfo = () => {
     };
 
     try {
-        await clientInfoService.createOrUpdateAccount(userId, formattedAccountData);
-        await clientInfoService.createOrUpdateRecord(userId, formattedCreditRecordData);
-        await clientInfoService.createOrUpdateEmployment(userId, formattedEmploymentData);
+        await evaluationService.createOrUpdateAccount(userId, formattedAccountData);
+        await evaluationService.createOrUpdateRecord(userId, formattedCreditRecordData);
+        await evaluationService.createOrUpdateEmployment(userId, formattedEmploymentData);
         alert("Datos actualizados correctamente");
     } catch (error) {
         console.error("Error al actualizar los datos:", error);
