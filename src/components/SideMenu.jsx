@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 export default function Sidemenu({ open, toggleDrawer }) {
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
+  const userType = localStorage.getItem('userType');
   let profileURL = "";
   if (1) {
     profileURL = `/client/${userId}`;
@@ -45,31 +46,37 @@ export default function Sidemenu({ open, toggleDrawer }) {
           <ListItemText primary="Perfil" />
         </ListItemButton>
 
-        <ListItemButton onClick={() => navigate("/credit/simulate")}>
-          <ListItemIcon>
-            <RequestQuoteIcon />
-          </ListItemIcon>
-          <ListItemText primary="Simular Crédito" />
-        </ListItemButton>
+        <Divider />
 
-        <ListItemButton onClick={() => navigate("/credit/request")}>
-          <ListItemIcon>
-            <PaidIcon />
-          </ListItemIcon>
-          <ListItemText primary="Solicitar Crédito" />
-        </ListItemButton>
-      </List>
+        {/* Opciones para CLIENT */}
+        {userType === "CLIENT" && (
+          <>
+            <ListItemButton onClick={() => navigate("/credit/simulate")}>
+              <ListItemIcon>
+                <RequestQuoteIcon />
+              </ListItemIcon>
+              <ListItemText primary="Simular Crédito" />
+            </ListItemButton>
 
-      <Divider />
+            <ListItemButton onClick={() => navigate("/credit/request")}>
+              <ListItemIcon>
+                <PaidIcon />
+              </ListItemIcon>
+              <ListItemText primary="Solicitar Crédito" />
+            </ListItemButton>
+          </>
+        )}
 
-      <List>
-        <ListItemButton onClick={() => navigate("/credit/all")}>
-          <ListItemIcon>
-            <ListIcon />
-          </ListItemIcon>
-          <ListItemText primary="Ver Créditos" />
-        </ListItemButton>
-
+        {/* Opciones para EXECUTIVE */}
+        {userType === "EXECUTIVE" && (
+          <ListItemButton onClick={() => navigate("/credit/all")}>
+            <ListItemIcon>
+              <ListIcon />
+            </ListItemIcon>
+            <ListItemText primary="Ver Créditos" />
+          </ListItemButton>
+        )}
+        
       </List>
     </Box>
   );

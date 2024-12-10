@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "@mui/material/Button";
 import EditIcon from "@mui/icons-material/Edit";
 import creditService from "../services/credit.service";
-import userService from "../services/credit.service";
+import clientService from "../services/client.service";
 import CreditTable from "./CreditTable";
 import trackingService from "../services/tracking.service";
 
@@ -19,7 +19,7 @@ const ClientProfile = () => {
       const userId = localStorage.getItem("userId");
       if (userId) {
         try {
-          const response = await userService.getUserById(userId);
+          const response = await clientService.getClientById(userId);
           setUserInfo(response.data);
         } catch (error) {
           console.error("Error al obtener la información del usuario:", error);
@@ -61,9 +61,13 @@ const ClientProfile = () => {
     navigate(`/credit/${id}`);
   }
 
+  const handleConditionsClick = (id) => {
+    navigate(`/credit/confirm/${id}`);
+  }
+
   const handleCancel = async (id) => {
     try {
-      const response = await creditService.cancelCredit(id);
+      const response = await trackingService.cancelCredit(id);
       alert("El crédito ha sido cancelado exitosamente.");
     } catch (error) {
       console.error("Error al cancelar el crédito:", error);
@@ -96,7 +100,7 @@ const ClientProfile = () => {
       )}
   
       <div>
-        <CreditTable credits={credits} trackings={trackings} handleEditClick={handleEditClick} handleCancel={handleCancel} />
+        <CreditTable credits={credits} trackings={trackings} handleEditClick={handleEditClick} handleCancel={handleCancel} handleConditionsClick={handleConditionsClick} />
       </div>
     </div>
   );

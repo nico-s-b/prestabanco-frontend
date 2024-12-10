@@ -1,4 +1,3 @@
-import React from "react";
 import calculationService from "../services/calculation.service";
 
 export const fetchRestrictions = async (creditType, propertyValue) => {

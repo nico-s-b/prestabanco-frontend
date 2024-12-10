@@ -1,11 +1,10 @@
 import React from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { format } from "date-fns";
 import { getCreditState, getCreditType, getRequiredDocumentsCount } from "./CreditUtils";
 
-const CreditTable = ({ credits, trackings, handleEditClick, handleCancel , handleConditionsClick }) => {
+const CreditTableExec = ({ credits, trackings, handleEvalClick }) => {
   return (
     <div>
       {credits && credits.length > 0 ? (
@@ -47,48 +46,19 @@ const CreditTable = ({ credits, trackings, handleEditClick, handleCancel , handl
                     </TableCell>
 
                     <TableCell>
-                      {tracking?.state !== "CANCELLED" && (
-                        <>
-                          <Button
-                              variant="contained"
-                              color="info"
-                              size="small"
-                              onClick={() => handleEditClick(credit.id)}
-                              style={{ marginLeft: "0.5rem" }}
-                              startIcon={<EditIcon />}
-                          >
-                              Editar
-                          </Button>
-                          <Button
-                              variant="contained"
-                              color="error"
-                              size="small"
-                              onClick={() => handleCancel(credit.id)}
-                              style={{ marginLeft: "0.5rem" }}
-                              startIcon={<DeleteIcon />}
-                          >
-                              Cancelar
-                          </Button>
-                        </>
-                      )}
-
-                      {tracking?.state == "PREAPROVAL" && (
-                        <>
-                          <Button
-                              variant="contained"
-                              color="info"
-                              size="small"
-                              onClick={() => handleConditionsClick(credit.id)}
-                              style={{ marginLeft: "0.5rem" }}
-                              startIcon={<EditIcon />}
-                          >
-                              Ver condiciones
-                          </Button>
-                        </>
-                      )}
+                    <Button
+                        variant="contained"
+                        color="info"
+                        size="small"
+                        onClick={() => handleEvalClick(credit.id)}
+                        style={{ marginLeft: "0.5rem" }}
+                        startIcon={<EditIcon />}
+                    >
+                        Evaluar
+                    </Button>
 
                     </TableCell>
-
+                    
                 </TableRow>
                 );
             })}
@@ -99,8 +69,8 @@ const CreditTable = ({ credits, trackings, handleEditClick, handleCancel , handl
     ) : (
     <p>No posee créditos</p>
     )}
-  </div>
+</div>
   );
 };
 
-export default CreditTable;
+export default CreditTableExec;
