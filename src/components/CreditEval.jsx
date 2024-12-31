@@ -115,7 +115,7 @@ const handleRejectClick = async () => {
           startIcon={<EditIcon />}
         >
           RECHAZAR
-        </Button>        
+        </Button>
     </div>
 
 

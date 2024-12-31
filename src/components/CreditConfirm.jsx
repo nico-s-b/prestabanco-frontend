@@ -87,8 +87,10 @@ const CreditConfirm = () => {
   };
 
   const handleCancel = async (id) => {
+    const userId = localStorage.getItem("userId");
     try {
-      const response = await trackingService.cancelCredit(id);
+      await trackingService.updateTracking(id, "CANCELLED");
+      navigate(`/client/${userId}`);
       alert("El crédito ha sido cancelado exitosamente.");
     } catch (error) {
       console.error("Error al cancelar el crédito:", error);

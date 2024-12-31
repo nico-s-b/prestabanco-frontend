@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Typography from "@mui/material/Typography";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import creditService from "../services/credit.service";
-import Button from "@mui/material/Button";
+import { Grid, Typography, Button } from "@mui/material";
 import CreditForm from "./CreditForm";
 import { textNeededDocuments } from "./CreditUtils";
 
@@ -15,13 +14,15 @@ const CreditRequest = () => {
 
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const [isValuesEntered, setIsValuesEntered] = useState(false);
+  const [isPeriodMountEntered, setIsPeriodMountEntered] = useState(false);
   const [restrictions, setRestrictions] = useState({
     maxLoanPeriod: 0,
     maxFinancingMount: 0,
     minAnnualRate: 0,
     maxAnnualRate: 0
   });
-
+  const location = useLocation();
+  const initialValues = location.state || {};
   const [error, setError] = useState("");
   const navigate = useNavigate();
   
@@ -64,29 +65,42 @@ const CreditRequest = () => {
   };
 
   return (
-    <><div>
-      <h1>Solicitud de Crédito</h1>
-      <form onSubmit={handleSubmit}>
-        <CreditForm
-          creditType={creditType}
-          setCreditType={setCreditType}
-          loanPeriod={loanPeriod}
-          setLoanPeriod={setLoanPeriod}
-          creditMount={creditMount}
-          setCreditMount={setCreditMount}
-          propertyValue={propertyValue}
-          setPropertyValue={setPropertyValue}
-          annualRate={annualRate}
-          setAnnualRate={setAnnualRate}
-          restrictions={restrictions}
-          setRestrictions={setRestrictions}
-          isValuesEntered={isValuesEntered}
-          setIsValuesEntered={setIsValuesEntered}
-          error={error}
-        />
+    <>
+      <Grid container justifyContent="center" sx={{ marginTop: 4 }}>
+          <Typography variant="h3" gutterBottom>
+            Solicitud de Crédito
+          </Typography>
+      </Grid>
 
-        <br />
-        <br />
+      <Grid container spacing={2} >
+      {/* Columna izquierda: Formulario */}
+        <Grid item xs={12} md={6}>
+        <form onSubmit={handleSubmit}>
+          <CreditForm
+            creditType={creditType}
+            setCreditType={setCreditType}
+            loanPeriod={loanPeriod}
+            setLoanPeriod={setLoanPeriod}
+            creditMount={creditMount}
+            setCreditMount={setCreditMount}
+            propertyValue={propertyValue}
+            setPropertyValue={setPropertyValue}
+            annualRate={annualRate}
+            setAnnualRate={setAnnualRate}
+            restrictions={restrictions}
+            setRestrictions={setRestrictions}
+            isValuesEntered={isValuesEntered}
+            setIsValuesEntered={setIsValuesEntered}
+            isPeriodMountEntered={isPeriodMountEntered}
+            setIsPeriodMountEntered={setIsPeriodMountEntered}
+            initialValues={initialValues}
+          />
+          
+          </form>
+        </Grid>
+
+      {/* Columna derecha: Documentos */}
+      <Grid item xs={12} md={6}>
         {creditType && (
           <>
             <Typography variant="body1" sx={{ mr: 2 }}>
@@ -99,20 +113,34 @@ const CreditRequest = () => {
             </ul>
           </>
         )}
+      </Grid>
+    </Grid>
 
-        <br />
+    <Grid container justifyContent="center" sx={{ marginTop: 4 }}>
         {isLoggedIn ? (
-          <>
-            <button type="submit">Solicitar Crédito</button>
-          </>
+          <Button
+            variant="contained"
+            color="secondary"
+            type="submit"
+            fullWidth
+            sx={{ 
+              marginTop: 2,
+              width: "20%", 
+              marginLeft: "auto", 
+              marginRight: "auto",
+              display: "block",                             
+            }}
+            disabled={!isPeriodMountEntered}
+          >
+            Solicitar Crédito
+          </Button>
         ) : (
           <br></br>
         )}
-        
-      </form>
+    </Grid>
 
+    <div>
       {error && <p style={{ color: "red" }}>{error}</p>}
-
     </div>
     <div>
     {isLoggedIn ? (

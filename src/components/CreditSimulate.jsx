@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
 import calculationService from "../services/calculation.service";
-import Button from "@mui/material/Button";
+import { Grid, Typography, Button } from "@mui/material";
 import CreditForm from "./CreditForm"; // Importa CreditForm
+import { G } from "@react-pdf/renderer";
 
 const CreditSimulate = () => {
   const [creditType, setCreditType] = useState("");
@@ -11,11 +11,12 @@ const CreditSimulate = () => {
   const [creditMount, setCreditMount] = useState("");
   const [propertyValue, setPropertyValue] = useState("");
   const [annualRate, setAnnualRate] = useState("");
+  const [fixedAnnualRate, setFixedAnnualRate] = useState("");
   const [simulationResult, setSimulationResult] = useState(null);
   const [error, setError] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const navigate = useNavigate();
-
+  const [isPeriodMountEntered, setIsPeriodMountEntered] = useState(false);
   const [isValuesEntered, setIsValuesEntered] = useState(false);
   const [restrictions, setRestrictions] = useState({
     maxLoanPeriod: 0,
@@ -30,6 +31,7 @@ const CreditSimulate = () => {
     setSimulationResult(null);
 
     try {
+      setFixedAnnualRate(annualRate);
       const response = await calculationService.simulate(
         creditType,
         loanPeriod,
@@ -47,12 +49,28 @@ const CreditSimulate = () => {
 
   const handleLoginClick = () => navigate("/login");
   const handleRegisterClick = () => navigate("/register");
-  const handleRequestClick = () => navigate("/credit/request");
+  const handleRequestClick = () => {
+    navigate("/credit/request", {
+      state: {
+        creditType,
+        loanPeriod,
+        creditMount,
+        propertyValue,
+        annualRate,
+      },
+    });
+  };
 
   return (
-    <>
-      <div>
-        <h1>Simulación de Crédito</h1>
+  <>
+    <Grid container justifyContent="center" sx={{ marginTop: 4 }}>
+        <Typography variant="h3" gutterBottom>
+          Simulación de Crédito
+        </Typography>
+    </Grid>
+    <Grid container spacing={2} >
+    {/* Columna izquierda: Formulario */}
+      <Grid item xs={12} md={6}>
         <form onSubmit={handleSubmit}>
           <CreditForm
             creditType={creditType}
@@ -69,57 +87,172 @@ const CreditSimulate = () => {
             setRestrictions={setRestrictions}
             isValuesEntered={isValuesEntered}
             setIsValuesEntered={setIsValuesEntered}
+            isPeriodMountEntered={isPeriodMountEntered}
+            setIsPeriodMountEntered={setIsPeriodMountEntered}
             error={error}
           />
-
-          <br />
-          <Button variant="contained" color="secondary" type="submit">
+          <Button
+            variant="contained"
+            color="secondary"
+            type="submit"
+            fullWidth
+            sx={{ 
+              marginTop: 2,
+              width: "50%", 
+              marginLeft: "auto", 
+              marginRight: "auto",
+              display: "block",                             
+            }}
+            disabled={!isPeriodMountEntered}
+          >
             Simular
           </Button>
-          <br />
-          <br />
         </form>
+      </Grid>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+      {/* Columna derecha: Resultados de la simulación */}
+      <Grid item xs={12} md={6}>
+        <div>
+          <Typography variant="h6" gutterBottom>
+            Resultados de la Simulación
+          </Typography>
+          {/* Contenedor principal de resultados */}
+          <Grid container spacing={1}>
+            {/* Fila: Cuota mínima */}
+            <Grid item xs={4}>
+              <Typography variant="body1">Cuota mínima posible:</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: simulationResult ? "text.primary" : "text.disabled",
+                  opacity: simulationResult ? 1 : 0.5,
+                }}
+              >
+                {simulationResult ? `$${simulationResult[0].toLocaleString("es-CL")}` : "—"}
+              </Typography>
+            </Grid>
+            <Grid item xs={4}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: simulationResult ? "text.primary" : "text.disabled",
+                  opacity: simulationResult ? 1 : 0.5,
+                }}
+              >
+                {simulationResult ? `Tasa anual: ${restrictions.minAnnualRate}%` : "—"}
+              </Typography>
+            </Grid>
 
-        {simulationResult && (
-          <div>
-            <h2>Resultado de la Simulación</h2>
-            <p>Cuota mínima posible: {simulationResult[0].toLocaleString("es-CL")}</p>
-            <p>Cuota solicitada: {simulationResult[1].toLocaleString("es-CL")}</p>
-            <p>Cuota máxima posible: {simulationResult[2].toLocaleString("es-CL")}</p>
-          </div>
-        )}
-      </div>
-      <div>
-        {isLoggedIn ? (
-          <>
-            <Typography variant="body1" sx={{ mr: 2 }}>
-              ¿Quieres pedir un crédito?
-            </Typography>
-            <Button
-              variant="contained"
-              sx={{ backgroundColor: '#1976d2', color: '#fff' }}
-              onClick={handleRequestClick}
-            >
-              Solicitar Crédito
-            </Button>
-          </>
-        ) : (
-          <>
-            <Typography variant="body1" sx={{ mr: 2 }}>
-              ¿Quieres pedir un crédito? Inicia sesión o regístrate con nosotros
-            </Typography>
-            <Button color="secondary" onClick={handleLoginClick}>
-              Iniciar sesión
-            </Button>
-            <Button color="inherit" onClick={handleRegisterClick}>
-              Registrarse
-            </Button>
-          </>
-        )}
-      </div>
-    </>
+            {/* Fila: Cuota solicitada */}
+            <Grid item xs={4}>
+              <Typography variant="body1">Cuota solicitada:</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: simulationResult ? "text.primary" : "text.disabled",
+                  opacity: simulationResult ? 1 : 0.5,
+                }}
+              >
+                {simulationResult ? `$${simulationResult[1].toLocaleString("es-CL")}` : "—"}
+              </Typography>
+            </Grid>
+            <Grid item xs={4}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: simulationResult ? "text.primary" : "text.disabled",
+                  opacity: simulationResult ? 1 : 0.5,
+                }}
+              >
+                {simulationResult ? `Tasa anual: ${fixedAnnualRate}%` : "—"}
+              </Typography>
+            </Grid>
+
+            {/* Fila: Cuota máxima */}
+            <Grid item xs={4}>
+              <Typography variant="body1">Cuota máxima posible:</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: simulationResult ? "text.primary" : "text.disabled",
+                  opacity: simulationResult ? 1 : 0.5,
+                }}
+              >
+                {simulationResult ? `$${simulationResult[2].toLocaleString("es-CL")}` : "—"}
+              </Typography>
+            </Grid>
+            <Grid item xs={4}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: simulationResult ? "text.primary" : "text.disabled",
+                  opacity: simulationResult ? 1 : 0.5,
+                }}
+              >
+                {simulationResult ? `Tasa anual: ${restrictions.maxAnnualRate}%` : "—"}
+              </Typography>
+            </Grid>
+
+            {/* Mensaje de ayuda */}
+            <Grid item xs={12}>
+              <Typography variant="caption" color="textSecondary">
+                {simulationResult
+                  ? "Los valores presentados son aproximados y pueden variar según las condiciones finales de la solicitud de crédito."
+                  : "Ingrese los valores solicitados para simular un crédito."}
+              </Typography>
+            </Grid>
+          </Grid>
+        </div>
+
+        {/* Opciones de acción */}
+        <Grid item xs={12}>
+          {isLoggedIn && simulationResult && (
+            <Grid container sx={{ marginTop: 4 }}>
+              <Grid container justifyContent="center" xs={12}>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  ¿Quieres solicitar un crédito usando estos datos?
+                </Typography>
+              </Grid>
+              <Grid container justifyContent="center" xs={12}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleRequestClick}
+                >
+                  Solicitar Crédito
+                </Button>
+              </Grid>
+            </Grid>
+          )}
+
+          {!isLoggedIn && (
+            <Grid container direction="column" alignItems="center" sx={{ marginTop: 4 }}>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                ¿Quieres pedir un crédito? Inicia sesión o regístrate con nosotros
+              </Typography>
+              <Button
+                color="secondary"
+                variant="outlined"
+                onClick={handleLoginClick}
+                sx={{ marginBottom: 1 }}
+              >
+                Iniciar sesión
+              </Button>
+              <Button color="inherit" variant="outlined" onClick={handleRegisterClick}>
+                Registrarse
+              </Button>
+            </Grid>
+          )}
+        </Grid>
+      </Grid>
+    </Grid>
+  </>
   );
 };
 

@@ -67,7 +67,7 @@ const ClientProfile = () => {
 
   const handleCancel = async (id) => {
     try {
-      const response = await trackingService.cancelCredit(id);
+      await trackingService.updateTracking(id, "CANCELLED");
       alert("El crédito ha sido cancelado exitosamente.");
     } catch (error) {
       console.error("Error al cancelar el crédito:", error);

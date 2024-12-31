@@ -5,7 +5,7 @@ const getTracking = (creditid) => {
 ;}
 
 const cancelCredit  = (id) => {
-    return httpClient.get(`/api/v1/tracking/cancel${id}`);
+    return httpClient.get(`/api/v1/tracking/cancel/${id}`);
 };
 
 const updateTracking = (id, state) => {

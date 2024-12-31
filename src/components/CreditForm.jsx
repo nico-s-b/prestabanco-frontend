@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { Grid, TextField, MenuItem, Slider, Typography } from "@mui/material";
 import { fetchRestrictions } from "./CreditUtils";
 
 const CreditForm = ({   
   creditType, setCreditType, loanPeriod, setLoanPeriod, creditMount,
   setCreditMount, propertyValue, setPropertyValue, annualRate, setAnnualRate,
-  restrictions, setRestrictions, isValuesEntered, setIsValuesEntered, error
+  restrictions, setRestrictions, isValuesEntered, setIsValuesEntered, error, 
+ setIsPeriodMountEntered, initialValues = {}
 }) => {
   
   useEffect(() => {
@@ -21,24 +23,48 @@ const CreditForm = ({
     }
   }, [isValuesEntered, creditType, propertyValue, setRestrictions]);
 
-  const handleValueChange = () => {
+  useEffect(() => {
+    if (restrictions) {
+      setAnnualRate((restrictions.minAnnualRate+restrictions.maxAnnualRate)/2);
+    }
+  }, [restrictions]);
+
+  useEffect(() => {
+    if (initialValues) {
+      const {
+        creditType: initCreditType,
+        loanPeriod: initLoanPeriod,
+        creditMount: initCreditMount,
+        propertyValue: initPropertyValue,
+        annualRate: initAnnualRate,
+      } = initialValues;
+  
+      if (initCreditType) {
+        setCreditType((prev) => prev || initCreditType);
+      }
+      if (initPropertyValue) {
+        setPropertyValue((prev) => prev || initPropertyValue);
+        setIsValuesEntered(true);
+      }
+      if (initLoanPeriod) {
+        setLoanPeriod((prev) => prev || initLoanPeriod);
+      }
+      if (initCreditMount) {
+        setCreditMount((prev) => prev || initCreditMount);
+        setIsPeriodMountEntered(true);
+      }
+      if (initAnnualRate) {
+        setAnnualRate((prev) => prev || initAnnualRate);
+      }
+    }
+  }, [initialValues]);
+  
+  
+
+  const handleTypePropertyChange = () => {
     if (creditType && propertyValue) {
       setIsValuesEntered(true);
     }
-    if (loanPeriod > restrictions.maxLoanPeriod) {
-      alert("El periodo de préstamo no puede ser mayor al máximo permitido");
-      setLoanPeriod(restrictions.maxLoanPeriod);
-    }
-    if (creditMount > restrictions.maxFinancingMount) {
-      alert("El monto del crédito no puede ser mayor al máximo permitido");
-      setCreditMount(restrictions.maxFinancingMount);
-    }
-  };
-
-  const handleChange = (e, setter) => {
-    const { value } = e.target;
-    const rawValue = value.replace(/\./g, ""); // Remueve puntos
-    setter(rawValue);    
   };
 
   const handleSlideChange = (e, setValue) => {
@@ -46,88 +72,151 @@ const CreditForm = ({
     setValue(value);
   };
 
+  const handleChange = (e, setter, max = null) => {
+    if (loanPeriod && creditMount) {
+      setIsPeriodMountEntered(true);
+    }
+    const { value } = e.target;
+    const unformattedValue = unformatNumber(value);
+    
+    if (/^\d*$/.test(unformattedValue)) {
+      const numericValue = parseInt(unformattedValue, 10);
+      
+      if (max && numericValue > max) {
+        alert(`El valor no puede ser mayor al máximo permitido (${max.toLocaleString("es-CL")})`);
+        setter(max.toString());
+      } else {
+        setter(unformattedValue);
+      }
+    }
+  };
+
   const formatNumber = (value) => {
     return value ? parseInt(value, 10).toLocaleString("es-CL") : "";
   };
 
+  const unformatNumber = (value) => {
+    return value.replace(/\D/g, '');
+  };
+
   return (
-    <div>
-      <label>
-        Tipo de Crédito:
-        <select 
-          value={creditType} 
-          onChange={(e) => { setCreditType(e.target.value); handleValueChange(); }} 
+    <Grid container spacing={1}>
+      {/* Tipo de Crédito */}
+      <Grid item xs={12} md={6}>
+        <TextField
+          select
+          fullWidth
+          label="Tipo de Crédito"
+          value={creditType}
+          onChange={(e) => {
+            setCreditType(e.target.value);
+            handleTypePropertyChange();
+          }}
           required
         >
-          <option value="">Seleccionar</option>
-          <option value="FIRSTHOME">Primera Vivienda</option>
-          <option value="SECONDHOME">Segunda Vivienda</option>
-          <option value="COMERCIAL">Comercial</option>
-          <option value="REMODELING">Remodelación</option>
-        </select>
-      </label>
-      <br />
-      <label>
-        Valor de la Propiedad:
-        <input
-          type="text"
-          value={formatNumber(propertyValue)}
-          onChange={(e) => { handleChange(e, setPropertyValue); handleValueChange(); }}
-          required
-          min="1"
-        />
-      </label>
-      <br />
+          <MenuItem value="">Seleccionar</MenuItem>
+          <MenuItem value="FIRSTHOME">Primera Vivienda</MenuItem>
+          <MenuItem value="SECONDHOME">Segunda Vivienda</MenuItem>
+          <MenuItem value="COMERCIAL">Comercial</MenuItem>
+          <MenuItem value="REMODELING">Remodelación</MenuItem>
+        </TextField>
+      </Grid>
 
-      {isValuesEntered ? (
-        <>
-          <label>
-            Período del Préstamo (años):
-            <input
-              type="number"
-              value={loanPeriod}
-              onChange={(e) => { setLoanPeriod(e.target.value); handleValueChange(); }}
-              max={restrictions.maxLoanPeriod}
-              required
-              min="1"
-            />
-          </label>
-          Valor máximo: {restrictions.maxLoanPeriod}
-          <br />
-          <label>
-            Monto del Crédito:
-            <input
-              type="text"
-              value={formatNumber(creditMount)}
-              onChange={(e) => { handleChange(e, setCreditMount); handleValueChange(); }}
-              max={restrictions.maxFinancingMount}
-              required
-              min="1"
-            />
-          </label>
-          Valor máximo: {restrictions.maxFinancingMount.toLocaleString("es-CL")}
-          <br />
-          <label>
-            Interés: {restrictions.minAnnualRate}% -
-            <input
-              type="range"
-              value={annualRate}
-              onChange={(e) => handleSlideChange(e, setAnnualRate)}
-              required
-              min={restrictions.minAnnualRate}
-              max={restrictions.maxAnnualRate}
-              step="0.1"
-            />
-            - {restrictions.maxAnnualRate}% , elegido: {annualRate}%
-          </label>
-        </>
-      ) : (
-        <label>
-          Ingrese el tipo de crédito y el valor de la propiedad para continuar con la solicitud de crédito.
-        </label>
+      {/* Valor de la Propiedad */}
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Valor de la Propiedad"
+          value={formatNumber(propertyValue)}
+          onChange={(e) => {
+            handleChange(e, setPropertyValue);
+            handleTypePropertyChange();
+          }}
+          required
+        />
+      </Grid>
+
+      {/* Período del Préstamo */}
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          type="number"
+          label="Período del Préstamo (años)"
+          value={loanPeriod}
+          onChange={(e) => handleChange(e, setLoanPeriod, restrictions.maxLoanPeriod)}
+          inputProps={{
+            min: 1,
+            max: restrictions.maxLoanPeriod,
+          }}
+          required
+          disabled={!isValuesEntered} 
+        />
+        <Typography variant="caption">
+          Máximo: {restrictions.maxLoanPeriod} años
+        </Typography>
+      </Grid>
+
+      {/* Monto del Crédito */}
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Monto del Crédito"
+          value={formatNumber(creditMount)}
+          onChange={(e) => handleChange(e, setCreditMount, restrictions.maxFinancingMount)}
+          required
+          disabled={!isValuesEntered} 
+        />
+        <Typography variant="caption">
+          Máximo: {restrictions.maxFinancingMount?.toLocaleString("es-CL")}
+        </Typography>
+      </Grid>
+
+      {/* Tasa de Interés */}
+      <Grid item xs={12}>
+        <Typography gutterBottom>
+          Tasa de Interés Anual: {annualRate}%
+        </Typography>
+        <Slider
+          value={annualRate}
+          onChange={(e) => handleSlideChange(e, setAnnualRate)}
+          min={restrictions.minAnnualRate}
+          max={restrictions.maxAnnualRate}
+          step={0.1}
+          marks={[
+            { value: restrictions.minAnnualRate, label: `${restrictions.minAnnualRate}%` },
+            { value: restrictions.maxAnnualRate, label: `${restrictions.maxAnnualRate}%` },
+          ]}
+          disabled={!isValuesEntered} 
+          sx={{
+            "& .MuiSlider-markLabel": {
+              transform: "translateX(-50%)",
+            },
+            "& .MuiSlider-markLabel[data-index='0']": { // etiqueta izquierda
+              transform: "translateX(-1%)",
+            },
+            "& .MuiSlider-markLabel[data-index='1']": { // etiqueta derecha
+              transform: "translateX(-75%)", 
+            },
+          }}
+
+        />
+      </Grid>
+
+      {!isValuesEntered && (
+        <Grid item xs={12}>
+          <Typography color="textSecondary">
+            Ingrese el tipo de crédito y el valor de la propiedad para continuar.
+          </Typography>
+        </Grid>
       )}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </div>
+
+      {/* Error */}
+      {error && (
+        <Grid item xs={12}>
+          <Typography color="error">{error}</Typography>
+        </Grid>
+      )}
+    </Grid>
   );
 };
 
