@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate , useParams } from "react-router-dom";
-import Button from "@mui/material/Button";
+import { Grid, Typography, Button } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import creditService from "../services/credit.service";
 import trackingService from "../services/tracking.service";
@@ -43,37 +43,60 @@ const CreditView = () => {
   }
 
   return (
-    <div>
-
-      <h1>Información del Crédito</h1>
-      {creditInfo && tracking ? (
-        <>
-        <CreditInfo creditInfo={creditInfo} tracking={tracking} />
-
-
-    <div>
-      <h2>Información financiera</h2>
-        <Button 
+    <>
+      {/* Título principal */}
+      <Grid container justifyContent="center" sx={{ marginTop: 4 }}>
+        <Typography variant="h3" gutterBottom>
+          Información del Crédito
+        </Typography>
+      </Grid>
+  
+      {/* Contenedor principal */}
+      <Grid container spacing={2}>
+        {/* Columna izquierda: Información del crédito */}
+        <Grid item xs={12} md={6}>
+          {creditInfo && tracking ? (
+            <CreditInfo creditInfo={creditInfo} tracking={tracking} />
+          ) : (
+            <Typography variant="body1" color="textSecondary">
+              Cargando la información del crédito...
+            </Typography>
+          )}
+        </Grid>
+  
+        {/* Columna derecha: Documentos */}
+        <Grid item xs={12} md={6}>
+          <Typography variant="body1" color="textSecondary" paragraph>
+            Sube los documentos requeridos por la solicitud de crédito.
+          </Typography>
+          {creditInfo && (
+            <Documents
+              creditId={id}
+              creditType={creditInfo.creditType}
+              onDocumentChange={fetchTracking}
+            />
+          )}
+        </Grid>
+      </Grid>
+  
+      {/* Información financiera */}
+      <Grid container justifyContent="center" sx={{ marginTop: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Información financiera
+        </Typography>
+        <Button
           variant="contained"
           color="info"
           onClick={handleInfoClick}
           startIcon={<EditIcon />}
+          sx={{ marginTop: 2 }}
         >
           Completa tu Información Financiera
         </Button>
-    </div>
-    <div>
-      <h2>Documentos</h2>
-      Sube los documentos requeridos por la solicitud de crédito.
-      <Documents creditId={id} creditType={creditInfo.creditType} onDocumentChange={fetchTracking} />
-      </div>
+      </Grid>
     </>
-      ) : (
-        <p>Cargando la información del crédito...</p>
-      )}
-
-    </div>
   );
+  
 };
 
 export default CreditView;

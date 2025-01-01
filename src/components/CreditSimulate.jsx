@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import calculationService from "../services/calculation.service";
 import { Grid, Typography, Button } from "@mui/material";
-import CreditForm from "./CreditForm"; // Importa CreditForm
+import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
+import CreditForm from "./CreditForm";
 import { G } from "@react-pdf/renderer";
 
 const CreditSimulate = () => {
@@ -29,7 +30,15 @@ const CreditSimulate = () => {
     event.preventDefault();
     setError("");
     setSimulationResult(null);
+    
+    if (validateValues()) {
+      await simulateCredit();
+    } else {
+      alert("Error al simular el crédito. Verifica los valores ingresados.");
+    }
+  };
 
+  const simulateCredit = async () => {
     try {
       setFixedAnnualRate(annualRate);
       const response = await calculationService.simulate(
@@ -44,6 +53,28 @@ const CreditSimulate = () => {
     } catch (error) {
       setError("Error al simular el crédito. Verifica los valores ingresados.");
       console.error("Simulación fallida:", error);
+    }
+  };
+
+
+  const validateValues = () => {
+    if (creditType && loanPeriod && creditMount && propertyValue && annualRate) {
+      if (creditMount > restrictions.maxFinancingMount) {
+        setError("El monto solicitado supera el valor máximo permitido.");
+        return false;
+      }
+      if (loanPeriod > restrictions.maxLoanPeriod) {
+        setError("El plazo solicitado supera el valor máximo permitido.");
+        return false;
+      }
+      if (annualRate < restrictions.minAnnualRate || annualRate > restrictions.maxAnnualRate) {
+        setError("La tasa de interés solicitada no está dentro del rango permitido.");
+        return false;
+      }
+      return true;
+    } else {
+      setError("Debes completar todos los campos para simular un crédito.");
+      return false;
     }
   };
 
@@ -96,18 +127,30 @@ const CreditSimulate = () => {
             color="secondary"
             type="submit"
             fullWidth
+            startIcon={<RequestQuoteIcon />}
             sx={{ 
               marginTop: 2,
               width: "50%", 
               marginLeft: "auto", 
               marginRight: "auto",
-              display: "block",                             
+              display: "flex", 
+              flexDirection: "row", 
+              alignItems: "center", 
+              justifyContent: "center",
             }}
             disabled={!isPeriodMountEntered}
           >
             Simular
           </Button>
         </form>
+        
+      {/* Error */}
+      {error && (
+        <Grid item xs={12} textAlign={"center"}>
+          <Typography color="error">{error}</Typography>
+        </Grid>
+      )}
+
       </Grid>
 
       {/* Columna derecha: Resultados de la simulación */}

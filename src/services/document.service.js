@@ -37,6 +37,14 @@ const deleteDocument = (id) => {
   return httpClient.delete(`/api/v1/documents/${id}`);
 };
 
-export default { getAllDocuments,  getDocumentById ,getAllDocumentsByCreditId ,
-    save, deleteDocument
+const replaceDocument = (id, fileData) => {
+  const formData = new FormData();
+  formData.append("id", id);
+  formData.append("fileData", fileData);
+
+  return httpClientMultipart.put(`/api/v1/documents/replace`, formData);
+};
+
+export default { getAllDocuments,  getDocumentById , getAllDocumentsByCreditId ,
+    save, deleteDocument, replaceDocument
 };

@@ -4,6 +4,8 @@ import creditService from "../services/credit.service";
 import { Grid, Typography, Button } from "@mui/material";
 import CreditForm from "./CreditForm";
 import { textNeededDocuments } from "./CreditUtils";
+import SearchIcon from '@mui/icons-material/Search';
+import { List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
 
 const CreditRequest = () => {
   const [creditType, setCreditType] = useState("");
@@ -35,7 +37,18 @@ const CreditRequest = () => {
     setError("");
 
     const userId = Number(localStorage.getItem('userId'));
-
+    if (!userId) {
+      setError("Debes iniciar sesión para solicitar un crédito.");
+      return;
+    }
+    if (validateValues()) {
+      await requestCredit();
+    } else {
+      setError("Error al solicitar el crédito. Verifica los valores ingresados.");
+    }
+  };
+  
+  const requestCredit = async () => {
     try {
       const response = await creditService.request(
         creditType,
@@ -45,17 +58,36 @@ const CreditRequest = () => {
         annualRate,
         userId
       );
-      console.log("Solicitud exitosa:", response);
       const creditId = response.data.id;
-      console.log("Credit ID:", creditId);
       alert("Sube los documentos requeridos para continuar con la solicitud de crédito.");
       navigate(`/credit/${creditId}`);
     } catch (error) {
       setError("Error al solicitar el crédito. Verifica los valores ingresados.");
       console.error("Solicitud fallida:", error);
     }
-  }
-  
+  };
+
+  const validateValues = () => {
+    if (creditType && loanPeriod && creditMount && propertyValue && annualRate) {
+      if (creditMount > restrictions.maxFinancingMount) {
+        setError("El monto solicitado supera el valor máximo permitido.");
+        return false;
+      }
+      if (loanPeriod > restrictions.maxLoanPeriod) {
+        setError("El plazo solicitado supera el valor máximo permitido.");
+        return false;
+      }
+      if (annualRate < restrictions.minAnnualRate || annualRate > restrictions.maxAnnualRate) {
+        setError("La tasa de interés solicitada no está dentro del rango permitido.");
+        return false;
+      }
+      return true;
+    } else {
+      setError("Debes completar todos los campos para simular un crédito.");
+      return false;
+    }
+  };
+
   const handleLoginClick = async () => {
     navigate("/login");
   };
@@ -67,36 +99,74 @@ const CreditRequest = () => {
   return (
     <>
       <Grid container justifyContent="center" sx={{ marginTop: 4 }}>
-          <Typography variant="h3" gutterBottom>
-            Solicitud de Crédito
-          </Typography>
+        <Typography variant="h3" gutterBottom>
+          Solicitud de Crédito
+        </Typography>
       </Grid>
 
       <Grid container spacing={2} >
       {/* Columna izquierda: Formulario */}
         <Grid item xs={12} md={6}>
-        <form onSubmit={handleSubmit}>
-          <CreditForm
-            creditType={creditType}
-            setCreditType={setCreditType}
-            loanPeriod={loanPeriod}
-            setLoanPeriod={setLoanPeriod}
-            creditMount={creditMount}
-            setCreditMount={setCreditMount}
-            propertyValue={propertyValue}
-            setPropertyValue={setPropertyValue}
-            annualRate={annualRate}
-            setAnnualRate={setAnnualRate}
-            restrictions={restrictions}
-            setRestrictions={setRestrictions}
-            isValuesEntered={isValuesEntered}
-            setIsValuesEntered={setIsValuesEntered}
-            isPeriodMountEntered={isPeriodMountEntered}
-            setIsPeriodMountEntered={setIsPeriodMountEntered}
-            initialValues={initialValues}
-          />
-          
+          <form onSubmit={handleSubmit}>
+            <CreditForm
+              creditType={creditType}
+              setCreditType={setCreditType}
+              loanPeriod={loanPeriod}
+              setLoanPeriod={setLoanPeriod}
+              creditMount={creditMount}
+              setCreditMount={setCreditMount}
+              propertyValue={propertyValue}
+              setPropertyValue={setPropertyValue}
+              annualRate={annualRate}
+              setAnnualRate={setAnnualRate}
+              restrictions={restrictions}
+              setRestrictions={setRestrictions}
+              isValuesEntered={isValuesEntered}
+              setIsValuesEntered={setIsValuesEntered}
+              isPeriodMountEntered={isPeriodMountEntered}
+              setIsPeriodMountEntered={setIsPeriodMountEntered}
+              initialValues={initialValues}
+            />
+            
+          <Grid container direction="column" alignItems="center" sx={{ marginTop: 4 }}>
+            {isLoggedIn && (
+              <>
+                <Grid item>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    type="submit"
+                    sx={{
+                      marginTop: 2,
+                      width: "100%",
+                      display: "block",
+                    }}
+                    disabled={!isPeriodMountEntered}
+                  >
+                    Crear Solicitud
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Typography
+                    variant="caption"
+                    align="center"
+                    sx={{ marginTop: 1, color: "text.secondary" }}
+                  >
+                    Luego podrás subir la documentación requerida
+                  </Typography>
+                </Grid>
+              </>
+            )}
+          </Grid>
+
           </form>
+
+          {/* Error */}
+          {error && (
+            <Grid item xs={12} textAlign={"center"}>
+              <Typography color="error">{error}</Typography>
+            </Grid>
+          )}
         </Grid>
 
       {/* Columna derecha: Documentos */}
@@ -104,44 +174,24 @@ const CreditRequest = () => {
         {creditType && (
           <>
             <Typography variant="body1" sx={{ mr: 2 }}>
-              Documentos requeridos:
+              Prepara los siguientes documentos para continuar la solicitud:
             </Typography>
-            <ul style={{ textAlign: "left" }}>
+            <List>
               {textNeededDocuments(creditType).map((doc, index) => (
-                <li key={index}>{doc}</li>
+                <ListItem key={index} sx={{ alignItems: "center" }}>
+                  <ListItemIcon>
+                    <SearchIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText primary={doc} />
+                </ListItem>
               ))}
-            </ul>
+            </List>
           </>
         )}
       </Grid>
+
     </Grid>
 
-    <Grid container justifyContent="center" sx={{ marginTop: 4 }}>
-        {isLoggedIn ? (
-          <Button
-            variant="contained"
-            color="secondary"
-            type="submit"
-            fullWidth
-            sx={{ 
-              marginTop: 2,
-              width: "20%", 
-              marginLeft: "auto", 
-              marginRight: "auto",
-              display: "block",                             
-            }}
-            disabled={!isPeriodMountEntered}
-          >
-            Solicitar Crédito
-          </Button>
-        ) : (
-          <br></br>
-        )}
-    </Grid>
-
-    <div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </div>
     <div>
     {isLoggedIn ? (
       <>
@@ -156,7 +206,9 @@ const CreditRequest = () => {
         <Button color="inherit" onClick={handleRegisterClick}>Register</Button>
       </>              
     )}
-    </div></>
+    </div>
+
+  </>
   );
 };
 

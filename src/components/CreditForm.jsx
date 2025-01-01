@@ -177,14 +177,20 @@ const CreditForm = ({
           Tasa de Interés Anual: {annualRate}%
         </Typography>
         <Slider
-          value={annualRate}
+          value={typeof annualRate === "number" ? annualRate : 0} 
           onChange={(e) => handleSlideChange(e, setAnnualRate)}
-          min={restrictions.minAnnualRate}
-          max={restrictions.maxAnnualRate}
+          min={typeof restrictions.minAnnualRate === "number" ? restrictions.minAnnualRate : 0}
+          max={typeof restrictions.maxAnnualRate === "number" ? restrictions.maxAnnualRate : 10}
           step={0.1}
           marks={[
-            { value: restrictions.minAnnualRate, label: `${restrictions.minAnnualRate}%` },
-            { value: restrictions.maxAnnualRate, label: `${restrictions.maxAnnualRate}%` },
+            {
+              value: typeof restrictions.minAnnualRate === "number" ? restrictions.minAnnualRate : 0,
+              label: `${restrictions.minAnnualRate || 0}%`,
+            },
+            {
+              value: typeof restrictions.maxAnnualRate === "number" ? restrictions.maxAnnualRate : 10,
+              label: `${restrictions.maxAnnualRate || 10}%`,
+            },
           ]}
           disabled={!isValuesEntered} 
           sx={{
@@ -198,8 +204,8 @@ const CreditForm = ({
               transform: "translateX(-75%)", 
             },
           }}
-
         />
+
       </Grid>
 
       {!isValuesEntered && (
@@ -207,13 +213,6 @@ const CreditForm = ({
           <Typography color="textSecondary">
             Ingrese el tipo de crédito y el valor de la propiedad para continuar.
           </Typography>
-        </Grid>
-      )}
-
-      {/* Error */}
-      {error && (
-        <Grid item xs={12}>
-          <Typography color="error">{error}</Typography>
         </Grid>
       )}
     </Grid>

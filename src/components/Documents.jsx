@@ -1,10 +1,24 @@
 import React, { useEffect, useState, useRef } from "react";
 import documentService from "../services/document.service";
-import Button from "@mui/material/Button";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { Grid, Typography, Button } from "@mui/material";
+import { List, ListItem, ListItemIcon, Box } from "@mui/material";
+import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { textNeededDocuments } from "./CreditUtils";
 import trackingService from "../services/tracking.service";
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PendingIcon from '@mui/icons-material/Pending';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
+import { set } from "date-fns";
+
 
 // Mapeo de nombres de tipos de documentos (DocumentType)
 const documentTypeMap = {
@@ -24,7 +38,9 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
   const [selectedDocumentLabel, setSelectedDocumentLabel] = useState("");
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
-    
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [selectedDocumentId, setSelectedDocumentId] = useState(null);
+  
   const documentTypeMapReversed = Object.fromEntries(
     Object.entries(documentTypeMap).map(([key, value]) => [value, key])
   );
@@ -50,27 +66,59 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
     (docLabel) => !uploadedDocumentTypes.includes(documentTypeMap[docLabel])
   );
 
-  const handleEditClick = async (id) => {
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [documentToEdit, setDocumentToEdit] = useState(null);
+  const [newFile, setNewFile] = useState(null);
+
+  const handleEditDocument = async (docId, newFile) => {
     try {
-      const document = await documentService.getDocumentById(id);
-      console.log("Editar documento:", document);
-      const tracking = await trackingService.getTracking(creditId);
-      console.log("Estado de la solicitud:", tracking.data);
-      // Aquí puedes implementar la lógica de edición
+      await documentService.replaceDocument(docId, newFile);
+      alert("Documento reemplazado exitosamente.");
+      if (onDocumentChange) onDocumentChange();
     } catch (err) {
-      console.error("Error al editar documento:", err);
+      console.error("Error al reemplazar documento:", err);
+      setError("No se pudo reemplazar el documento.");
+    }
+  };
+  
+  const openEditDialog = (docId) => {
+    const doc = documents.find((doc) => doc.id === docId);
+    if (doc) {
+      setDocumentToEdit(doc);
+      setIsEditDialogOpen(true);
+    } else {
+      console.error("No se encontró el documento con ID:", docId);
     }
   };
 
-  const handleDelete = async (id) => {
+  const closeEditDialog = () => {
+    setDocumentToEdit(null);
+    setNewFile(null);
+    setIsEditDialogOpen(false);
+  };
+
+  const handleDeleteClick = (id) => {
+    setSelectedDocumentId(id);
+    setOpenConfirmDialog(true);
+  };
+  
+  const cancelDelete = () => {
+    setOpenConfirmDialog(false);
+    setSelectedDocumentId(null);
+  };  
+
+  const confirmDelete = async (id) => {
     try {
       await documentService.deleteDocument(id);
       alert("Documento eliminado exitosamente.");
       setDocuments((prev) => prev.filter((doc) => doc.id !== id)); 
       if (onDocumentChange) onDocumentChange();
+      setOpenConfirmDialog(false);
     } catch (err) {
       console.error("Error al eliminar documento:", err);
       setError("No se pudo eliminar el documento.");
+      setOpenConfirmDialog(false);
     }
   };
 
@@ -88,7 +136,7 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
         await documentService.save(creditId, documentType, file);
         if (onDocumentChange) onDocumentChange();
       }
-      alert("Documentos subidos exitosamente.");
+      alert("Documento subido exitosamente");
       setSelectedFiles([]); // Limpiar selección
       setSelectedDocumentLabel(""); // Reiniciar selección de tipo de documento
 
@@ -111,81 +159,188 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
 
   return (
     <div>
-      <h2>Documentos</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
       
-      <label>Selecciona el tipo de documento:</label>
-      <select
-        value={selectedDocumentLabel}
-        onChange={(e) => setSelectedDocumentLabel(e.target.value)}
-      >
-        <option value="">Seleccionar tipo de documento</option>
-        {missingDocuments.map((docLabel) => (
-          <option key={docLabel} value={docLabel}>
-            {docLabel}
-          </option>
-        ))}
-      </select>
-      
-      <input
-        type="file"
-        accept=".pdf"
-        multiple
-        onChange={handleFileChange}
-        ref={fileInputRef}
-      />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleUpload}
-        disabled={!selectedFiles.length || !selectedDocumentLabel}
-      >
-        Subir Documentos
-      </Button>
+      <List>
+        {neededDocuments.map((docLabel) => {
+          const uploadedDoc = documents.find((doc) => documentTypeMapReversed[doc.documentType] === docLabel);
+          const isUploaded = Boolean(uploadedDoc);
 
-      <h3>Documentos Actuales</h3>
-      {documents.length > 0 ? (
-      <ul>
-        {documents.map((doc) => (
-           <li key={doc.id}>
-          {documentTypeMapReversed[doc.documentType] || doc.documentType}
+          return (
+            <ListItem key={docLabel} disableGutters>
+              <Grid container alignItems="center">
+                {/* Columna: Ícono y Nombre del Documento */}
+                <Grid item xs={6}>
+                  <Box display="flex" alignItems="center">
+                    {isUploaded ? (
+                      <CheckCircleIcon color="success" sx={{ marginRight: 1 }} />
+                    ) : (
+                      <PendingIcon color="warning" sx={{ marginRight: 1 }} />
+                    )}
+                    <Typography variant="body1">{docLabel}</Typography>
+                  </Box>
+                </Grid>
+
+                {/* Columna: Botones y Estado */}
+                <Grid item xs={6} display="flex" justifyContent="flex-end" alignItems="center">
+                  {isUploaded ? (
+                    <>
+                      <Button
+                        variant="contained"
+                        color="info"
+                        size="small"
+                        onClick={() => openEditDialog(uploadedDoc.id)}
+                        sx={{ marginRight: 1 }}
+                        startIcon={<EditIcon />}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDeleteClick(uploadedDoc.id)}
+                        startIcon={<DeleteIcon />}
+                      >
+                        Borrar
+                      </Button>
+                    </>
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      sx={{
+                        textAlign: "center",
+                        width: "75%",
+                      }}
+                    >
+                      Pendiente
+                    </Typography>
+                  )}
+                </Grid>
+              </Grid>
+            </ListItem>
+          );
+        })}
+      </List>
+
+
+
+      <Grid container spacing={2} alignItems="center">
+        {/* Fila 1: Select y Input de archivo */}
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth>
+            <InputLabel id="document-type-label">Selecciona el tipo de documento</InputLabel>
+            <Select
+              labelId="document-type-label"
+              value={selectedDocumentLabel}
+              onChange={(e) => setSelectedDocumentLabel(e.target.value)}
+              displayEmpty
+            >
+              {missingDocuments.map((docLabel) => (
+                <MenuItem key={docLabel} value={docLabel}>
+                  {docLabel}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        
+        <Grid item xs={12} md={6}>
           <Button
-             variant="contained"
-             color="info"
-             size="small"
-             onClick={() => handleEditClick(doc.id)}
-             style={{ marginLeft: "0.5rem" }}
-             startIcon={<EditIcon />}
-           >
-             Editar
-           </Button>
-           <Button
-             variant="contained"
-             color="error"
-             size="small"
-             onClick={() => handleDelete(doc.id)}
-             style={{ marginLeft: "0.5rem" }}
-             startIcon={<DeleteIcon />}
-           >
-             Borrar
-           </Button>
-         </li>     
-        ))}
-      </ul>
-        ) : (
-          <p>No hay documentos subidos.</p>
-        )}
+            variant="outlined"
+            component="label"
+            fullWidth
+          >
+            Elegir archivo
+            <input
+              type="file"
+              accept=".pdf"
+              multiple
+              onChange={handleFileChange}
+              ref={fileInputRef}
+              hidden
+            />
+          </Button>
+        </Grid>
 
-      <h3>Documentos Necesarios</h3>
-      {missingDocuments.length > 0 ? (
-        <ul>
-          {missingDocuments.map((docLabel) => (
-            <li key={docLabel}>{docLabel}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>Todos los documentos requeridos están subidos.</p>
-      )}
+        {/* Fila 2: Botón de subir documentos */}
+        <Grid item xs={12}>     
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleUpload}
+            startIcon={<UploadFileIcon />}
+            disabled={!selectedFiles.length || !selectedDocumentLabel}
+            sx={{ marginTop: 2, marginLeft: "auto", marginRight: "auto",
+              display: "flex", 
+              flexDirection: "row", 
+              alignItems: "center", 
+              justifyContent: "center"
+             }}
+          >
+            Subir Documento
+          </Button>
+          {/* Mostrar el nombre del archivo seleccionado */}
+          {selectedFiles.length > 0 && (
+            <Typography
+              variant="body2"
+              color="textSecondary"
+              sx={{ marginTop: 1, textAlign: "center" }}
+            >
+              {selectedFiles.map((file) => file.name).join(", ")}
+            </Typography>
+          )}               
+        </Grid>
+      </Grid>
+
+      <Dialog open={openConfirmDialog} onClose={cancelDelete}>
+        <DialogTitle>Confirmación</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ¿Estás seguro de que quieres borrar este documento?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDelete} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={confirmDelete} color="error" autoFocus>
+            Borrar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isEditDialogOpen} onClose={closeEditDialog}>
+        <DialogTitle>Editar Documento</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Selecciona un nuevo archivo para reemplazar:
+            <br />
+            {documentToEdit?.fileName || "Nombre no disponible"}
+          </DialogContentText>
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setNewFile(e.target.files[0])}
+            style={{ marginTop: "16px" }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeEditDialog}>Cancelar</Button>
+          <Button
+            onClick={() => {
+              handleEditDocument(documentToEdit.id, newFile);
+              closeEditDialog();
+            }}
+            disabled={!newFile}
+          >
+            Guardar Cambios
+          </Button>
+        </DialogActions>
+      </Dialog>
+        
+
     </div>
   );
 };
