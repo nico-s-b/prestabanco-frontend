@@ -2,14 +2,15 @@ import React, { useEffect, useState, useRef } from "react";
 import documentService from "../services/document.service";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Grid, Typography, Button } from "@mui/material";
-import { List, ListItem, ListItemIcon, Box } from "@mui/material";
+import { Grid, Typography, Button, Tooltip } from "@mui/material";
+import { List, ListItem, ListItemIcon, Box, IconButton } from "@mui/material";
 import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { textNeededDocuments } from "./CreditUtils";
 import trackingService from "../services/tracking.service";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
+import CloseIcon from '@mui/icons-material/Close';
 import {
   Dialog,
   DialogTitle,
@@ -17,29 +18,12 @@ import {
   DialogContentText,
   DialogActions,
 } from "@mui/material";
-import { set } from "date-fns";
-
-
-// Mapeo de nombres de tipos de documentos (DocumentType)
-const documentTypeMap = {
-  "Comprobante de ingresos": "INCOMECERTIFY",
-  "Certificado de avalúo": "VALUATIONCERTIFY",
-  "Historial crediticio": "CREDITREPORT",
-  "Escritura de primera vivienda": "FIRSTHOUSEDEED",
-  "Estado financiero del negocio": "FINANCIALSTATUSREPORT",
-  "Plan de negocios": "BUSINESSPLAN",
-  "Presupuesto de remodelación": "REMODELINGBUDGET",
-  "Certificado de avalúo actualizado": "UPDATEDVALUATIONCERTIFY",
-};
+import { documentTypeMap } from "./CreditUtils";
 
 const Documents = ({ creditId, creditType, onDocumentChange }) => {
   const [documents, setDocuments] = useState([]);
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [selectedDocumentLabel, setSelectedDocumentLabel] = useState("");
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-  const [selectedDocumentId, setSelectedDocumentId] = useState(null);
   
   const documentTypeMapReversed = Object.fromEntries(
     Object.entries(documentTypeMap).map(([key, value]) => [value, key])
@@ -98,6 +82,9 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
     setIsEditDialogOpen(false);
   };
 
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [selectedDocumentId, setSelectedDocumentId] = useState(null);
+
   const handleDeleteClick = (id) => {
     setSelectedDocumentId(id);
     setOpenConfirmDialog(true);
@@ -108,11 +95,11 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
     setSelectedDocumentId(null);
   };  
 
-  const confirmDelete = async (id) => {
+  const confirmDelete = async () => {
     try {
-      await documentService.deleteDocument(id);
+      await documentService.deleteDocument(selectedDocumentId);
       alert("Documento eliminado exitosamente.");
-      setDocuments((prev) => prev.filter((doc) => doc.id !== id)); 
+      setDocuments((prev) => prev.filter((doc) => doc.id !== selectedDocumentId)); 
       if (onDocumentChange) onDocumentChange();
       setOpenConfirmDialog(false);
     } catch (err) {
@@ -122,22 +109,19 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
     }
   };
 
-  const handleFileChange = (event) => {
-    setSelectedFiles(Array.from(event.target.files));
-  };
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedDocumentLabel, setSelectedDocumentLabel] = useState("");
 
   const handleUpload = async (event) => {
     event.preventDefault();
     setError("");
 
     try {
-      for (let file of selectedFiles) {
-        const documentType = documentTypeMap[selectedDocumentLabel]; // Convierte el nombre humano al tipo enum
-        await documentService.save(creditId, documentType, file);
-        if (onDocumentChange) onDocumentChange();
-      }
+      const documentType = documentTypeMap[selectedDocumentLabel]; // Convierte el nombre humano al tipo enum
+      await documentService.save(creditId, documentType, selectedFile);
+      if (onDocumentChange) onDocumentChange();
       alert("Documento subido exitosamente");
-      setSelectedFiles([]); // Limpiar selección
+      setSelectedFile(null); // Limpiar selección
       setSelectedDocumentLabel(""); // Reiniciar selección de tipo de documento
 
       if (fileInputRef.current) {
@@ -150,11 +134,24 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
       const tracking = await trackingService.getTracking(creditId);
       if (tracking.data.state === "EVALUATING") {
           alert("Todos los documentos requeridos están presentes. La solicitud está en evaluación.");
-      } 
+      }
     } catch (err) {
       console.error("Error al subir documentos:", err);
       setError("No se pudieron subir los documentos.");
     }
+  };
+
+  const handleCancelUpload = () => {
+    setSelectedFile(null);
+    setSelectedDocumentLabel("");
+  };
+
+  const handleFileChange = (file) => {
+    if (file.type !== "application/pdf") {
+      alert("Solo se permiten archivos en formato PDF.");
+      return;
+    }
+    setSelectedFile(file);
   };
 
   return (
@@ -225,7 +222,6 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
       </List>
 
 
-
       <Grid container spacing={2} alignItems="center">
         {/* Fila 1: Select y Input de archivo */}
         <Grid item xs={12} md={6}>
@@ -256,8 +252,7 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
             <input
               type="file"
               accept=".pdf"
-              multiple
-              onChange={handleFileChange}
+              onChange={(e) => handleFileChange(e.target.files[0])}
               ref={fileInputRef}
               hidden
             />
@@ -271,27 +266,63 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
             color="primary"
             onClick={handleUpload}
             startIcon={<UploadFileIcon />}
-            disabled={!selectedFiles.length || !selectedDocumentLabel}
-            sx={{ marginTop: 2, marginLeft: "auto", marginRight: "auto",
+            disabled={!selectedFile || !selectedDocumentLabel}
+            sx={{ 
+              marginTop: 2, 
+              marginLeft: "auto", 
+              marginRight: "auto",
               display: "flex", 
               flexDirection: "row", 
               alignItems: "center", 
               justifyContent: "center"
-             }}
+            }}
           >
             Subir Documento
           </Button>
+
           {/* Mostrar el nombre del archivo seleccionado */}
-          {selectedFiles.length > 0 && (
-            <Typography
-              variant="body2"
-              color="textSecondary"
-              sx={{ marginTop: 1, textAlign: "center" }}
+          {selectedFile && (
+            <Box 
+              sx={{ 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                marginTop: 1, 
+              }}
             >
-              {selectedFiles.map((file) => file.name).join(", ")}
-            </Typography>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{ textAlign: "center" }}
+              >
+                {selectedFile.name}
+              </Typography>
+              <Tooltip title="Cancelar elección" arrow>
+                <IconButton
+                  onClick={handleCancelUpload}
+                  sx={{
+                    backgroundColor: "rgba(0, 0, 0, 0.2)", 
+                    color: "error.main", 
+                    border: "1px solid rgba(0, 0, 0, 0.1)", 
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 0, 0, 0.1)", 
+                    },
+                    width: 24,
+                    height: 24,
+                    marginLeft: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+
+            </Box>
           )}               
         </Grid>
+        
       </Grid>
 
       <Dialog open={openConfirmDialog} onClose={cancelDelete}>

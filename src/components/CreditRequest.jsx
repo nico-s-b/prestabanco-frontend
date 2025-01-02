@@ -5,7 +5,18 @@ import { Grid, Typography, Button } from "@mui/material";
 import CreditForm from "./CreditForm";
 import { textNeededDocuments } from "./CreditUtils";
 import SearchIcon from '@mui/icons-material/Search';
-import { List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import { List, ListItem, ListItemIcon, ListItemText, Tooltip } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
+import { Table, TableBody, TableCell, TableRow } from "@mui/material";
+import { getCreditType } from "./CreditUtils";
+import { documentDescriptions, validateValues } from "./CreditUtils";
+import RequerimentsDialog from "./CreditRequerimentsDialog";
 
 const CreditRequest = () => {
   const [creditType, setCreditType] = useState("");
@@ -13,7 +24,7 @@ const CreditRequest = () => {
   const [creditMount, setCreditMount] = useState("");
   const [propertyValue, setPropertyValue] = useState("");
   const [annualRate, setAnnualRate] = useState("");
-
+  const [userId, setUserId] = useState(localStorage.getItem('userId')); 
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const [isValuesEntered, setIsValuesEntered] = useState(false);
   const [isPeriodMountEntered, setIsPeriodMountEntered] = useState(false);
@@ -27,28 +38,26 @@ const CreditRequest = () => {
   const initialValues = location.state || {};
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Lógica para verificar token y establecer estado de autenticación
-  }, []);
 
-  async function handleSubmit(event) {
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+
+  const handleSubmit = (event) => {
     event.preventDefault();
     setError("");
 
-    const userId = Number(localStorage.getItem('userId'));
     if (!userId) {
       setError("Debes iniciar sesión para solicitar un crédito.");
       return;
     }
-    if (validateValues()) {
-      await requestCredit();
+
+    if (validateValues(creditType, loanPeriod, creditMount, propertyValue, annualRate, restrictions, setError)) {
+      setOpenConfirmDialog(true);
     } else {
-      setError("Error al solicitar el crédito. Verifica los valores ingresados.");
+      alert("Error al simular el crédito. Verifica los valores ingresados.");
     }
   };
-  
-  const requestCredit = async () => {
+
+  const confirmRequest = async () => {
     try {
       const response = await creditService.request(
         creditType,
@@ -59,35 +68,19 @@ const CreditRequest = () => {
         userId
       );
       const creditId = response.data.id;
-      alert("Sube los documentos requeridos para continuar con la solicitud de crédito.");
       navigate(`/credit/${creditId}`);
     } catch (error) {
-      setError("Error al solicitar el crédito. Verifica los valores ingresados.");
+      setError("No se pudo realizar la solicitud de crédito. Inténtalo nuevamente.");
       console.error("Solicitud fallida:", error);
+    } finally {
+      setOpenConfirmDialog(false);
     }
   };
 
-  const validateValues = () => {
-    if (creditType && loanPeriod && creditMount && propertyValue && annualRate) {
-      if (creditMount > restrictions.maxFinancingMount) {
-        setError("El monto solicitado supera el valor máximo permitido.");
-        return false;
-      }
-      if (loanPeriod > restrictions.maxLoanPeriod) {
-        setError("El plazo solicitado supera el valor máximo permitido.");
-        return false;
-      }
-      if (annualRate < restrictions.minAnnualRate || annualRate > restrictions.maxAnnualRate) {
-        setError("La tasa de interés solicitada no está dentro del rango permitido.");
-        return false;
-      }
-      return true;
-    } else {
-      setError("Debes completar todos los campos para simular un crédito.");
-      return false;
-    }
+  const cancelRequest = () => {
+    setOpenConfirmDialog(false);
   };
-
+  
   const handleLoginClick = async () => {
     navigate("/login");
   };
@@ -126,6 +119,8 @@ const CreditRequest = () => {
               isPeriodMountEntered={isPeriodMountEntered}
               setIsPeriodMountEntered={setIsPeriodMountEntered}
               initialValues={initialValues}
+              isLoggedIn={isLoggedIn}
+              isRequest={true}
             />
             
           <Grid container direction="column" alignItems="center" sx={{ marginTop: 4 }}>
@@ -152,7 +147,7 @@ const CreditRequest = () => {
                     align="center"
                     sx={{ marginTop: 1, color: "text.secondary" }}
                   >
-                    Luego podrás subir la documentación requerida
+                    Luego deberás subir la documentación requerida
                   </Typography>
                 </Grid>
               </>
@@ -174,7 +169,7 @@ const CreditRequest = () => {
         {creditType && (
           <>
             <Typography variant="body1" sx={{ mr: 2 }}>
-              Prepara los siguientes documentos para continuar la solicitud:
+              Para continuar con el proceso necesitarás los siguientes documentos:
             </Typography>
             <List>
               {textNeededDocuments(creditType).map((doc, index) => (
@@ -182,7 +177,9 @@ const CreditRequest = () => {
                   <ListItemIcon>
                     <SearchIcon color="primary" />
                   </ListItemIcon>
-                  <ListItemText primary={doc} />
+                  <Tooltip title={documentDescriptions[doc] || "Descripción no disponible"} arrow={false}>
+                    <ListItemText primary={doc} />
+                  </Tooltip>                  
                 </ListItem>
               ))}
             </List>
@@ -199,14 +196,63 @@ const CreditRequest = () => {
       </>
     ) : (
       <>
+      <Grid container direction="column" alignItems="center" justifyContent="center" sx={{ marginTop: 4 }}>
+        <Grid item>
         <Typography variant="body1" sx={{ mr: 2 }}>
           ¿Quieres pedir un crédito? Inicia sesión o registrate con nosotros
         </Typography>
-        <Button color="secondary" onClick={handleLoginClick}>Login</Button>
-        <Button color="inherit" onClick={handleRegisterClick}>Register</Button>
+        </Grid>
+        <Grid item>
+        <Button color="secondary" onClick={handleLoginClick}>Iniciar sesión</Button>
+        <Button color="info" onClick={handleRegisterClick}>Registrarse</Button>
+        </Grid>
+      </Grid>
       </>              
     )}
     </div>
+
+    <Dialog open={openConfirmDialog} onClose={cancelRequest}>
+      <DialogTitle>Confirmar solicitud de crédito</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Estás a punto de crear una solicitud de crédito con los siguientes datos:
+        </DialogContentText>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell>Tipo de crédito:</TableCell>
+              <TableCell>{getCreditType(creditType)}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Monto solicitado:</TableCell>
+              <TableCell>$ {parseInt(creditMount,10).toLocaleString("es-CL")}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Tasa de interés anual:</TableCell>
+              <TableCell>{annualRate}%</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Plazo:</TableCell>
+              <TableCell>{loanPeriod} años</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+        <DialogContentText sx={{ marginTop: 2 }}>
+          Recuerda que deberás subir la documentación requerida para continuar con tu solicitud.
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={confirmRequest} color="primary" variant="contained">
+          Confirmar solicitud
+        </Button>
+        <Button onClick={cancelRequest} color="secondary" variant="outlined">
+          Cancelar
+        </Button>
+      </DialogActions>
+    </Dialog>
+
+    {/* Cuadro de diálogo de requerimientos */}
+    <RequerimentsDialog />
 
   </>
   );

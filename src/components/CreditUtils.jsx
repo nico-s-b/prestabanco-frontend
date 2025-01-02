@@ -23,6 +23,17 @@ export const getRequiredDocumentsCount = (creditType) => {
     return 0; 
   };
 
+export const documentTypeMap = {
+  "Comprobante de ingresos": "INCOMECERTIFY",
+  "Certificado de avalúo": "VALUATIONCERTIFY",
+  "Historial crediticio": "CREDITREPORT",
+  "Escritura de primera vivienda": "FIRSTHOUSEDEED",
+  "Estado financiero del negocio": "FINANCIALSTATUSREPORT",
+  "Plan de negocios": "BUSINESSPLAN",
+  "Presupuesto de remodelación": "REMODELINGBUDGET",
+  "Certificado de avalúo actualizado": "UPDATEDVALUATIONCERTIFY",
+};
+
 export const DocumentType = {
   INCOMECERTIFY: "INCOMECERTIFY",
   VALUATIONCERTIFY: "VALUATIONCERTIFY",
@@ -32,6 +43,17 @@ export const DocumentType = {
   BUSINESSPLAN: "BUSINESSPLAN",
   REMODELINGBUDGET: "REMODELINGBUDGET",
   UPDATEDVALUATIONCERTIFY: "UPDATEDVALUATIONCERTIFY",
+};
+
+export const documentDescriptions = {
+  "Comprobante de ingresos": "Documento que certifica tus ingresos de los últimos 2 años. Puede incluir recibos de sueldo, declaraciones de impuestos o balances financieros.",
+  "Certificado de avalúo": "Informe emitido por un tasador autorizado que detalla el valor actual de la propiedad.",
+  "Historial crediticio": "Registro de tus deudas, pagos y calificación crediticia. Incluye información de DICOM u otras entidades financieras.",
+  "Escritura de primera vivienda": "Documento legal que certifica la propiedad de la vivienda en cuestión.",
+  "Estado financiero del negocio": "Resumen detallado de los ingresos, gastos y balances financieros de tu empresa.",
+  "Plan de negocios": "Documento que describe la estructura, objetivos y estrategias financieras de tu negocio.",
+  "Presupuesto de remodelación": "Plan detallado de costos estimados para los trabajos de remodelación que deseas realizar.",
+  "Certificado de avalúo actualizado": "Informe reciente emitido por un tasador autorizado que detalla el valor actual y actualizado de la propiedad."
 };
 
 export const renderNeededDocuments = (creditType) => {
@@ -138,4 +160,25 @@ export const getCreditState = (state) => {
       return "Remodelación";
     }
       return "";
+  };
+
+  export const validateValues = (creditType, loanPeriod, creditMount, propertyValue, annualRate, restrictions, setError) => {
+    if (creditType && loanPeriod && creditMount && propertyValue && annualRate) {
+      if (creditMount > restrictions.maxFinancingMount) {
+        setError("El monto solicitado supera el valor máximo permitido.");
+        return false;
+      }
+      if (loanPeriod > restrictions.maxLoanPeriod) {
+        setError("El plazo solicitado supera el valor máximo permitido.");
+        return false;
+      }
+      if (annualRate < restrictions.minAnnualRate || annualRate > restrictions.maxAnnualRate) {
+        setError("La tasa de interés solicitada no está dentro del rango permitido.");
+        return false;
+      }
+      return true;
+    } else {
+      setError("Debes completar todos los campos para simular un crédito.");
+      return false;
+    }
   };

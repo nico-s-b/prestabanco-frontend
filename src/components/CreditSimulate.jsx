@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import calculationService from "../services/calculation.service";
-import { Grid, Typography, Button } from "@mui/material";
+import { Grid, Button, Typography, Dialog, DialogTitle, DialogContent } from "@mui/material";
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 import CreditForm from "./CreditForm";
-import { G } from "@react-pdf/renderer";
+import { validateValues } from "./CreditUtils";
+import RequerimentsDialog from "./CreditRequerimentsDialog";
+import { set } from "date-fns";
 
 const CreditSimulate = () => {
   const [creditType, setCreditType] = useState("");
@@ -31,7 +33,7 @@ const CreditSimulate = () => {
     setError("");
     setSimulationResult(null);
     
-    if (validateValues()) {
+    if (validateValues(creditType, loanPeriod, creditMount, propertyValue, annualRate, restrictions, setError)) {
       await simulateCredit();
     } else {
       alert("Error al simular el crédito. Verifica los valores ingresados.");
@@ -56,28 +58,6 @@ const CreditSimulate = () => {
     }
   };
 
-
-  const validateValues = () => {
-    if (creditType && loanPeriod && creditMount && propertyValue && annualRate) {
-      if (creditMount > restrictions.maxFinancingMount) {
-        setError("El monto solicitado supera el valor máximo permitido.");
-        return false;
-      }
-      if (loanPeriod > restrictions.maxLoanPeriod) {
-        setError("El plazo solicitado supera el valor máximo permitido.");
-        return false;
-      }
-      if (annualRate < restrictions.minAnnualRate || annualRate > restrictions.maxAnnualRate) {
-        setError("La tasa de interés solicitada no está dentro del rango permitido.");
-        return false;
-      }
-      return true;
-    } else {
-      setError("Debes completar todos los campos para simular un crédito.");
-      return false;
-    }
-  };
-
   const handleLoginClick = () => navigate("/login");
   const handleRegisterClick = () => navigate("/register");
   const handleRequestClick = () => {
@@ -90,6 +70,16 @@ const CreditSimulate = () => {
         annualRate,
       },
     });
+  };
+
+  const [openLoanRequirements, setOpenLoanRequirements] = useState(false);
+
+  const handleLoanRequirementsClick = () => {
+    setOpenLoanRequirements(true);
+  }
+
+  const handleCloseDialog = () => {
+    setOpenLoanRequirements(false);
   };
 
   return (
@@ -143,7 +133,7 @@ const CreditSimulate = () => {
             Simular
           </Button>
         </form>
-        
+
       {/* Error */}
       {error && (
         <Grid item xs={12} textAlign={"center"}>
@@ -211,7 +201,7 @@ const CreditSimulate = () => {
                   opacity: simulationResult ? 1 : 0.5,
                 }}
               >
-                {simulationResult ? `Tasa anual: ${fixedAnnualRate}%` : "—"}
+                {simulationResult ? `Tasa anual: ${parseFloat(fixedAnnualRate).toFixed(1)}%` : "—"}
               </Typography>
             </Grid>
 
@@ -257,12 +247,12 @@ const CreditSimulate = () => {
         <Grid item xs={12}>
           {isLoggedIn && simulationResult && (
             <Grid container sx={{ marginTop: 4 }}>
-              <Grid container justifyContent="center" xs={12}>
+              <Grid container justifyContent="center" >
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   ¿Quieres solicitar un crédito usando estos datos?
                 </Typography>
               </Grid>
-              <Grid container justifyContent="center" xs={12}>
+              <Grid container justifyContent="center">
                 <Button
                   variant="contained"
                   color="primary"
@@ -295,6 +285,10 @@ const CreditSimulate = () => {
         </Grid>
       </Grid>
     </Grid>
+
+    {/* Cuadro de diálogo de requerimientos */}
+    <RequerimentsDialog />
+
   </>
   );
 };

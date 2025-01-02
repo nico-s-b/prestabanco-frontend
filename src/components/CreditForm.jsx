@@ -6,7 +6,7 @@ const CreditForm = ({
   creditType, setCreditType, loanPeriod, setLoanPeriod, creditMount,
   setCreditMount, propertyValue, setPropertyValue, annualRate, setAnnualRate,
   restrictions, setRestrictions, isValuesEntered, setIsValuesEntered, error, 
- setIsPeriodMountEntered, initialValues = {}
+ setIsPeriodMountEntered, initialValues = {} , isRequest, setIsRequest, isLoggedIn
 }) => {
   
   useEffect(() => {
@@ -23,11 +23,19 @@ const CreditForm = ({
     }
   }, [isValuesEntered, creditType, propertyValue, setRestrictions]);
 
+  const [isSlideInitialized, setIsSlideInitialized] = useState(false);
+
   useEffect(() => {
-    if (restrictions) {
-      setAnnualRate((restrictions.minAnnualRate+restrictions.maxAnnualRate)/2);
+    if (!isSlideInitialized) {
+      if (initialValues && initialValues.annualRate !== undefined) {
+        setAnnualRate(parseFloat(initialValues.annualRate));
+        setIsSlideInitialized(true); 
+      } else if (restrictions && restrictions.minAnnualRate > 0) {
+        setAnnualRate((restrictions.minAnnualRate + restrictions.maxAnnualRate) / 2);
+        setIsSlideInitialized(true); 
+      }
     }
-  }, [restrictions]);
+  }, [restrictions, initialValues, isSlideInitialized]);
 
   useEffect(() => {
     if (initialValues) {
@@ -58,7 +66,6 @@ const CreditForm = ({
       }
     }
   }, [initialValues]);
-  
   
 
   const handleTypePropertyChange = () => {
@@ -113,6 +120,7 @@ const CreditForm = ({
             handleTypePropertyChange();
           }}
           required
+          disabled={isRequest && !isLoggedIn}
         >
           <MenuItem value="">Seleccionar</MenuItem>
           <MenuItem value="FIRSTHOME">Primera Vivienda</MenuItem>
@@ -133,6 +141,7 @@ const CreditForm = ({
             handleTypePropertyChange();
           }}
           required
+          disabled={isRequest && !isLoggedIn}
         />
       </Grid>
 
@@ -174,7 +183,7 @@ const CreditForm = ({
       {/* Tasa de Interés */}
       <Grid item xs={12}>
         <Typography gutterBottom>
-          Tasa de Interés Anual: {annualRate}%
+          Tasa de Interés Anual: {annualRate ? parseFloat(annualRate).toFixed(1) : "0"}%
         </Typography>
         <Slider
           value={typeof annualRate === "number" ? annualRate : 0} 
@@ -185,11 +194,11 @@ const CreditForm = ({
           marks={[
             {
               value: typeof restrictions.minAnnualRate === "number" ? restrictions.minAnnualRate : 0,
-              label: `${restrictions.minAnnualRate || 0}%`,
+              label: restrictions.minAnnualRate !== 0 ? `${restrictions.minAnnualRate}%` : "",
             },
             {
               value: typeof restrictions.maxAnnualRate === "number" ? restrictions.maxAnnualRate : 10,
-              label: `${restrictions.maxAnnualRate || 10}%`,
+              label: restrictions.maxAnnualRate !== 0 ? `${restrictions.maxAnnualRate}%` : "",
             },
           ]}
           disabled={!isValuesEntered} 
@@ -208,7 +217,7 @@ const CreditForm = ({
 
       </Grid>
 
-      {!isValuesEntered && (
+      {!isValuesEntered && isLoggedIn && (
         <Grid item xs={12}>
           <Typography color="textSecondary">
             Ingrese el tipo de crédito y el valor de la propiedad para continuar.

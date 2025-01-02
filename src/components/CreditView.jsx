@@ -81,9 +81,6 @@ const CreditView = () => {
   
       {/* Información financiera */}
       <Grid container justifyContent="center" sx={{ marginTop: 4 }}>
-        <Typography variant="h5" gutterBottom>
-          Información financiera
-        </Typography>
         <Button
           variant="contained"
           color="info"

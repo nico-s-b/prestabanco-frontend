@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import React, { useState } from "react";
 import clientService from "../services/client.service";
 import executiveService from "../services/executive.service";
-import Button from "@mui/material/Button";
+import { Grid, TextField, Select, MenuItem, Button, Typography } from "@mui/material";
 import "./../styles/Register.css";
 
 const UserRegister = () => {
@@ -54,84 +54,159 @@ const UserRegister = () => {
 
   return (
     <div className="user-register">
-      <br />
+      <Typography variant="h4" align="center" gutterBottom>
+        Registro de Usuario
+      </Typography>
       <form onSubmit={handleSubmit}>
-        <label>Tipo de Usuario:</label>
-        <select
-          name="userType"
-          value={data.userType}
-          onChange={handleChange}
-          required
-        >
-          <option value="CLIENT">Cliente</option>
-          <option value="EXECUTIVE">Ejecutivo</option>
-        </select>
-        <input
-          type="text"
-          name="rut"
-          value={data.rut}
-          onChange={handleChange}
-          placeholder="RUT"
-          required
-        />
-        <input
-          type="text"
-          name="name"
-          value={data.name}
-          onChange={handleChange}
-          placeholder="Nombre"
-          required
-        />
-        <input
-          type="text"
-          name="paternalLastname"
-          value={data.paternalLastname}
-          onChange={handleChange}
-          placeholder="Apellido Paterno"
-          required
-        />
-        <input
-          type="text"
-          name="maternalLastname"
-          value={data.maternalLastname}
-          onChange={handleChange}
-          placeholder="Apellido Materno"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          value={data.email}
-          onChange={handleChange}
-          placeholder="Email"
-          required
-        />
-        <input
-          type="text"
-          name="phone"
-          value={data.phone}
-          onChange={handleChange}
-          placeholder="Teléfono"
-          required
-        />
-        <input
-          type="date"
-          name="birthDate"
-          value={data.birthDate}
-          onChange={handleChange}
-          placeholder="Fecha de Nacimiento"
-          required
-        />
-        <input
-          type="password"
-          name="pass"
-          value={data.pass}
-          onChange={handleChange}
-          placeholder="Contraseña"
-          required
-        />
-        <Button  type="submit">Registrarse</Button >
-        {error && <p>{error}</p>}
+        <Grid container spacing={2} justifyContent="center">
+          {/* Tipo de Usuario */}
+          <Grid item xs={12} md={6}>
+
+            <TextField
+              select
+              fullWidth
+              label="Tipo de Usuario"
+              name="userType"
+              value={data.userType}
+              onChange={handleChange}
+              required
+            >
+              <MenuItem value="">Seleccionar</MenuItem>
+              <MenuItem value="CLIENT">Cliente</MenuItem>
+              <MenuItem value="EXECUTIVE">Ejecutivo</MenuItem>
+            </TextField>
+          </Grid>
+
+          {/* RUT */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              name="rut"
+              value={data.rut}
+              onChange={handleChange}
+              placeholder="RUT"
+              required
+              label="RUT"
+            />
+          </Grid>
+
+          {/* Nombre */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              name="name"
+              value={data.name}
+              onChange={handleChange}
+              placeholder="Nombre"
+              required
+              label="Nombre"
+            />
+          </Grid>
+
+          {/* Apellido Paterno */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              name="paternalLastname"
+              value={data.paternalLastname}
+              onChange={handleChange}
+              placeholder="Apellido Paterno"
+              required
+              label="Apellido Paterno"
+            />
+          </Grid>
+
+          {/* Apellido Materno */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              name="maternalLastname"
+              value={data.maternalLastname}
+              onChange={handleChange}
+              placeholder="Apellido Materno"
+              required
+              label="Apellido Materno"
+            />
+          </Grid>
+
+          {/* Email */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              type="email"
+              name="email"
+              value={data.email}
+              onChange={handleChange}
+              placeholder="Email"
+              required
+              label="Email"
+            />
+          </Grid>
+
+          {/* Teléfono */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              name="phone"
+              value={data.phone}
+              onChange={handleChange}
+              placeholder="Teléfono"
+              required
+              label="Teléfono"
+            />
+          </Grid>
+
+          {/* Fecha de Nacimiento */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              type="date"
+              name="birthDate"
+              value={data.birthDate}
+              onChange={handleChange}
+              required
+              label="Fecha de Nacimiento"
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+          </Grid>
+
+          {/* Contraseña */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              type="password"
+              name="pass"
+              value={data.pass}
+              onChange={handleChange}
+              placeholder="Contraseña"
+              required
+              label="Contraseña"
+            />
+          </Grid>
+
+          {/* Botón de Registro */}
+          <Grid item xs={12} md={6}>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              type="submit"
+            >
+              Registrarse
+            </Button>
+          </Grid>
+
+          {/* Mensaje de error */}
+          {error && (
+            <Grid item xs={12}>
+              <Typography color="error" align="center">
+                {error}
+              </Typography>
+            </Grid>
+          )}
+        </Grid>
       </form>
     </div>
   );
