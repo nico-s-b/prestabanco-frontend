@@ -4,6 +4,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from '@mui/material/CssBaseline';
 import { useMediaQuery } from "@mui/material";
 import Box from "@mui/material/Box";
+import { SessionProvider } from "./services/SessionContext";
 
 import Navbar from "./components/Navbar"
 import Home from './components/Home';
@@ -54,38 +55,40 @@ function App() {
     },
   });
   
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline /> {/* Aplica el fondo y colores base del tema */}
       <Router>
-      <Box
-        sx={{
-          bgcolor: "background.default",
-          color: "text.primary",
-          padding: 2,
-          minHeight: "100vh",
-        }}
-      >          
-      <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/credit/simulate" element={<CreditSimulate />} />
-            <Route path="/credit/request" element={<CreditRequest />} />
-            <Route path="/credit/:id" element={<CreditView />} />
-            <Route path="/credit/all" element={<CreditList />} />
-            <Route path="/client/:id" element={<ClientProfile />} />
-            <Route path="/client/info/:id" element={<ClientInfo />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/executive/:id" element={<ExecutiveProfile />} />
-            <Route path="/credit/eval/:id" element={<CreditEval />} />
-            <Route path="/credit/confirm/:id" element={<CreditConfirm />} />
-            <Route path="/documents/:id" element={<Documents />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Box>
+        <SessionProvider>
+          <Box
+            sx={{
+              bgcolor: "background.default",
+              color: "text.primary",
+              padding: 2,
+              minHeight: "100vh",
+            }}
+            > 
+            <Navbar />
+            
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/credit/simulate" element={<CreditSimulate />} />
+              <Route path="/credit/request" element={<CreditRequest />} />
+              <Route path="/credit/:id" element={<CreditView />} />
+              <Route path="/credit/all" element={<CreditList />} />
+              <Route path="/client/:id" element={<ClientProfile />} />
+              <Route path="/client/info/:id" element={<ClientInfo />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/executive/:id" element={<ExecutiveProfile />} />
+              <Route path="/credit/eval/:id" element={<CreditEval />} />
+              <Route path="/credit/confirm/:id" element={<CreditConfirm />} />
+              <Route path="/documents/:id" element={<Documents />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Box>
+        </SessionProvider>
       </Router>
     </ThemeProvider>
   );

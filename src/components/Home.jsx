@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Grid, Typography, Button, Box } from "@mui/material";
 import LoanRequirementsTable from "./CreditRequeriments.jsx";
+import { SessionContext } from "../services/SessionContext";
+
 
 const Home = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  //const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  const { isLoggedIn, setIsLoggedIn  } = useContext(SessionContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,44 +47,92 @@ const Home = () => {
         </Typography>
       </Grid>
 
-      {/* Botones principales */}
-      <Grid item xs={12}>
-        {isLoggedIn ? (
-          <Box display="flex" justifyContent="center" gap={2}>
+    {/* Botones principales */}
+    <Grid container alignItems="center" justifyContent="center" spacing={4}>
+      {isLoggedIn ? (
+        <>
+          {/* Simular Crédito */}
+          <Grid container item xs={12} md={5} direction="column" alignItems="center">
+            <Typography variant="body1" sx={{ marginBottom: 1, textAlign: "center" }}>
+              ¿Quieres realizar una simulación?
+            </Typography>
             <Button
               variant="contained"
-              color="secondary"
+              size="large"
+              sx={{
+                backgroundColor: "#66BB6A",
+                color: "#fff",
+                "&:hover": { backgroundColor: "#388E3C" }, 
+                minWidth: "200px",
+              }}
               onClick={handleSimulateClick}
             >
               Simular Crédito
             </Button>
+          </Grid>
+
+          {/* Solicitar Crédito */}
+          <Grid container item xs={12} md={5} direction="column" alignItems="center">
+            <Typography variant="body1" sx={{ marginBottom: 1, textAlign: "center" }}>
+              ¿Quieres pedir un crédito?
+            </Typography>
             <Button
               variant="contained"
-              sx={{ backgroundColor: "#1976d2", color: "#fff" }}
+              size="large"
+              sx={{
+                backgroundColor: "#1976D2",
+                color: "#fff",
+                "&:hover": { backgroundColor: "#115293" },
+                minWidth: "200px",
+              }}
               onClick={handleRequestClick}
             >
               Solicitar Crédito
             </Button>
-          </Box>
-        ) : (
+          </Grid>
+        </>
+      ) : (
+        <Grid item xs={12}>
           <Box textAlign="center">
             <Typography variant="body1" sx={{ marginBottom: 2 }}>
               ¿Quieres pedir un crédito? Inicia sesión o regístrate con nosotros.
             </Typography>
             <Box display="flex" justifyContent="center" gap={2}>
-              <Button variant="contained" color="secondary" onClick={handleLoginClick}>
-                Iniciar sesión
-              </Button>
-              <Button variant="contained" color="info" onClick={handleRegisterClick}>
-                Registrarse
-              </Button>
+            <Button
+              variant="contained"
+              size="large"
+              sx={{
+                backgroundColor: "#1976D2", 
+                color: "#fff",
+                "&:hover": { backgroundColor: "#115293" }, 
+                minWidth: "150px",
+              }}
+              onClick={handleLoginClick}
+            >
+              Iniciar Sesión
+            </Button>
+            <Button
+              variant="contained"
+              size="large"
+              sx={{
+                backgroundColor: "#66BB6A", 
+                color: "#fff",
+                "&:hover": { backgroundColor: "#388E3C" },
+                minWidth: "150px",
+              }}
+              onClick={handleRegisterClick}
+            >
+              Registrarse
+            </Button>
             </Box>
           </Box>
-        )}
-      </Grid>
+        </Grid>
+      )}
+    </Grid>
+
 
       {/* Tabla */}
-      <Grid item xs={12} sx={{ width: "90%" }}>
+      <Grid item xs={12} sx={{ width: "100%" }}>
         <LoanRequirementsTable />
       </Grid>
 

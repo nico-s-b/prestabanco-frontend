@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate , useParams } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
+import { Grid, Button, Typography } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import creditService from "../services/credit.service";
 import calculationService from "../services/calculation.service";
 import trackingService from "../services/tracking.service";
@@ -100,84 +101,101 @@ const CreditConfirm = () => {
 
   return (
     <div>
-
-      <h1>Condiciones del Crédito</h1>
+      <Typography variant="h3" gutterBottom sx={{ marginTop: 4 }} align="center">
+        Condiciones del Crédito
+      </Typography>
+      <Typography variant="h8" gutterBottom sx={{ marginTop: 4 }} align="center">
+        A continuación se presentan las condiciones del crédito, por favor revisarlas detenidamente antes de aceptar.
+        Una vez aceptadas, el crédito será aprobado y se procederá a la firma del contrato.
+      </Typography>
       {creditInfo && tracking ? (
         <>
-        <CreditInfo creditInfo={creditInfo} tracking={tracking} />
+      <Grid container spacing={2} >
+        <Grid item xs={12} md={6}>
+          <Typography variant="h4" gutterBottom sx={{ marginTop: 4 }} align="center">
+            Información del Crédito
+          </Typography>
 
-    <div>
-      <h2>Condiciones</h2>
+          <CreditInfo creditInfo={creditInfo} tracking={tracking} />
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Typography variant="h4" gutterBottom sx={{ marginTop: 4 }} align="center">
+            Condiciones
+          </Typography>
       
-      {totalCosts ? (
-        <><div>
-                <TableContainer component={Paper} sx={{ width: "60%", margin: "0 auto" }}>
-                  <Table>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>Cuota</TableCell>
-                        <TableCell>{totalCosts.installment.toLocaleString("es-CL")}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Seguro de crédito</TableCell>
-                        <TableCell>{totalCosts.creditInsurance.toLocaleString("es-CL")}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Seguro de incendio</TableCell>
-                        <TableCell>{totalCosts.fireInsurance.toLocaleString("es-CL")}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Gastos administrativos</TableCell>
-                        <TableCell>{totalCosts.administrativeFee.toLocaleString("es-CL")}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Total mensual</TableCell>
-                        <TableCell>{totalCosts.monthlyTotal.toLocaleString("es-CL")}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Total final</TableCell>
-                        <TableCell>{totalCosts.finalTotal.toLocaleString("es-CL")}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Fecha de cálculo</TableCell>
-                        <TableCell>{new Date(totalCosts.calculationDate).toLocaleString("es-CL")}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </div>
-              <div>
-                  <Button
-                    variant="contained"
-                    color="info"
-                    size="small"
-                    onClick={() => handleAcceptClick(id)}
-                    style={{ marginLeft: "0.5rem" }}
+          {totalCosts ? (
+            <><div>
+              <TableContainer component={Paper} sx={{ width: "80%", margin: "0 auto" }}>
+                <Table>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Cuota fija mensual</TableCell>
+                      <TableCell>$ {totalCosts.installment.toLocaleString("es-CL")}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Seguro de crédito (mensual)</TableCell>
+                      <TableCell>$ {totalCosts.creditInsurance.toLocaleString("es-CL")}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Seguro de incendio (mensual)</TableCell>
+                      <TableCell>$ {totalCosts.fireInsurance.toLocaleString("es-CL")}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Total mensual</TableCell>
+                      <TableCell>$ {totalCosts.monthlyTotal.toLocaleString("es-CL")}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Número total de cuotas</TableCell>
+                      <TableCell>{creditInfo.loanPeriod*12}</TableCell>
+                    </TableRow>                    
+                    <TableRow>
+                      <TableCell>Gastos administrativos</TableCell>
+                      <TableCell>$ {totalCosts.administrativeFee.toLocaleString("es-CL")}</TableCell>
+                    </TableRow>                    
+                    <TableRow>
+                      <TableCell>Total final</TableCell>
+                      <TableCell>$ {totalCosts.finalTotal.toLocaleString("es-CL")}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Fecha de cálculo</TableCell>
+                      <TableCell>{new Date(totalCosts.calculationDate).toLocaleString("es-CL")}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
+            <Grid container justifyContent="center" sx={{ marginTop: 4 }}>
 
-                  >
-                    Aceptar Condiciones
-                  </Button>
+              <Button
+                variant="contained"
+                color="info"
+                size="small"
+                onClick={() => handleAcceptClick(id)}
+                style={{ marginLeft: "0.5rem" }}
 
-                  <Button
-                    variant="contained"
-                    color="error"
-                    size="small"
-                    onClick={() => handleCancel(id)}
-                    style={{ marginLeft: "0.5rem" }}
+              >
+                Aceptar Condiciones
+              </Button>
 
-                  >
-                    Cancelar Crédito
-                  </Button>                  
-                </div></>
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => handleCancel(id)}
+                style={{ marginLeft: "0.5rem" }}
 
+              >
+                Cancelar Crédito
+              </Button>
 
-      ) : (
-        <p>Cargando los costos totales...</p>
-      )}
-
-
-    </div>
-
+            </Grid>
+          </>
+          ) : (
+            <p>Cargando los costos totales...</p>
+          )}
+          </Grid>
+      </Grid>
     </>
       ) : (
         <p>Cargando la información del crédito...</p>

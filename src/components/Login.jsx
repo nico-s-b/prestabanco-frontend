@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import loginService from "../services/login.service";
 import { useNavigate } from "react-router-dom";
 import { Grid, TextField, Button, Typography, Select, MenuItem , Box } from "@mui/material";
+import { SessionContext } from "../services/SessionContext";
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -9,6 +11,7 @@ const Login = () => {
   const [userType, setUserType] = useState("CLIENT");  
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { setIsLoggedIn, setUserName } = useContext(SessionContext);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -24,9 +27,13 @@ const Login = () => {
         }
 
         const currentUserResponse = await loginService.currentUser();
+
+
         localStorage.setItem('userId', currentUserResponse.data.userId);
-        
-        window.dispatchEvent(new Event("storage"));
+        localStorage.setItem('name', currentUserResponse.data.name);
+        setIsLoggedIn(true);
+        setUserName(currentUserResponse.data.name);
+        //window.dispatchEvent(new Event("storage"));
         navigate("/home");
       
     } catch (error) {

@@ -1,11 +1,69 @@
 import React from "react";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import InfoIcon from "@mui/icons-material/Info";
+import BlockIcon from "@mui/icons-material/Block";
 import { format } from "date-fns";
 import { getCreditState, getCreditType, getRequiredDocumentsCount } from "./CreditUtils";
 
-const CreditTable = ({ credits, trackings, handleEditClick, handleCancel , handleConditionsClick }) => {
+const CreditTable = ({ credits, trackings, handleEditClick, handleCancelClick , handleConditionsClick , handleRejectClick }) => {
+
+  const statesCancel = ["INITIALREV", "PENDINGDOCUMENTATION", "EVALUATING", "PREAPROVAL" ,  "FINALAPROVAL"];
+  const statesEdit = ["INITIALREV", "PENDINGDOCUMENTATION"];
+  const statesConditions = ["PREAPROVAL", "FINALAPROVAL", "APROVED", "INOUTLAY"];
+  const statesReject = ["REJECTED"];
+
+  const CancelButton = ({ onClick }) => (
+    <Tooltip title="Cancelar crédito">
+      <IconButton
+        onClick={onClick}
+        sx={{
+          color: "rgba(255, 99, 71, 0.8)", // Rojo suave
+          "&:hover": {
+            backgroundColor: "rgba(255, 99, 71, 0.1)",
+          },
+        }}
+      >
+        <DeleteIcon />
+      </IconButton>
+    </Tooltip>
+  );
+  
+  const EditButton = ({ onClick }) => (
+    <Tooltip title="Editar crédito">
+      <IconButton
+        onClick={onClick}
+        sx={{
+          color: "info.main",
+          "&:hover": {
+            backgroundColor: "rgba(0, 123, 255, 0.1)",
+          },
+        }}
+      >
+        <EditIcon />
+      </IconButton>
+    </Tooltip>
+  );
+  
+  const ConditionsButton = ({ onClick }) => (
+    <Tooltip title="Ver condiciones">
+      <IconButton
+        onClick={onClick}
+        sx={{
+          color: "success.main",
+          "&:hover": {
+            backgroundColor: "rgba(40, 167, 69, 0.1)",
+          },
+        }}
+      >
+        <InfoIcon />
+      </IconButton>
+    </Tooltip>
+  );
+  
+
   return (
     <div>
       {credits && credits.length > 0 ? (
@@ -17,14 +75,14 @@ const CreditTable = ({ credits, trackings, handleEditClick, handleCancel , handl
                 <TableRow>
                   <TableCell align="left" sx={{ fontWeight: "bold" }}>Nro</TableCell>
                   <TableCell align="left" sx={{ fontWeight: "bold" }}>Tipo de crédito</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: "bold" }}>Monto</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: "bold" }}>Monto solicitado</TableCell>
                   <TableCell align="right" sx={{ fontWeight: "bold" }}>Plazo (años)</TableCell>
                   <TableCell align="right" sx={{ fontWeight: "bold" }}>Interés (anual)</TableCell>
                   <TableCell align="right" sx={{ fontWeight: "bold" }}>Fecha solicitud</TableCell>
                   <TableCell align="right" sx={{ fontWeight: "bold" }}>Última actualización</TableCell>
                   <TableCell align="right" sx={{ fontWeight: "bold" }}>Estado</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: "bold" }}>Documentos</TableCell>
-                  <TableCell align="left" sx={{ fontWeight: "bold" }}>Operaciones</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: "bold" }}>Documentos subidos</TableCell>
+                  <TableCell align="left" sx={{ fontWeight: "bold" }}>Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -47,46 +105,27 @@ const CreditTable = ({ credits, trackings, handleEditClick, handleCancel , handl
                     </TableCell>
 
                     <TableCell>
-                      {tracking?.state !== "CANCELLED" && (
-                        <>
-                          <Button
-                              variant="contained"
-                              color="info"
-                              size="small"
-                              onClick={() => handleEditClick(credit.id)}
-                              style={{ marginLeft: "0.5rem" }}
-                              startIcon={<EditIcon />}
-                          >
-                              Editar
-                          </Button>
-                          <Button
-                              variant="contained"
-                              color="error"
-                              size="small"
-                              onClick={() => handleCancel(credit.id)}
-                              style={{ marginLeft: "0.5rem" }}
-                              startIcon={<DeleteIcon />}
-                          >
-                              Cancelar
-                          </Button>
-                        </>
-                      )}
-
-                      {tracking?.state == "PREAPROVAL" && (
-                        <>
-                          <Button
-                              variant="contained"
-                              color="info"
-                              size="small"
-                              onClick={() => handleConditionsClick(credit.id)}
-                              style={{ marginLeft: "0.5rem" }}
-                              startIcon={<EditIcon />}
-                          >
-                              Ver condiciones
-                          </Button>
-                        </>
-                      )}
-
+                      <Box 
+                        sx={{ 
+                          display: "flex", 
+                          justifyContent: "center", 
+                          alignItems: "center", 
+                          gap: 1
+                        }}
+                      >
+                        {tracking && statesConditions.includes(tracking.state) && (
+                          <ConditionsButton onClick={() => handleConditionsClick(credit.id)} />
+                        )}                        
+                        {tracking && statesEdit.includes(tracking.state) && (
+                          <EditButton onClick={() => handleEditClick(credit.id)} />
+                        )} 
+                        {tracking && statesCancel.includes(tracking.state) && (
+                          <CancelButton onClick={() => handleCancelClick(credit.id)} />
+                        )}
+                        {tracking && statesReject.includes(tracking.state) && (
+                          <RejectButton onClick={() => handleRejectClick(credit.id)} />
+                        )}
+                      </Box>
                     </TableCell>
 
                 </TableRow>

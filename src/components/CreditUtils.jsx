@@ -142,7 +142,7 @@ export const getCreditState = (state) => {
     } else if (state === "REJECTED") {
       return "Rechazada";
     } else if (state === "CANCELLED") {
-      return "Calncelada";
+      return "Cancelada";
     } else if (state === "INOUTLAY") {
       return "En desembolso";
     }
