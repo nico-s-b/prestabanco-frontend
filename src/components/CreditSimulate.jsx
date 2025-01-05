@@ -92,6 +92,9 @@ const CreditSimulate = () => {
     <Grid container spacing={2} >
     {/* Columna izquierda: Formulario */}
       <Grid item xs={12} md={6}>
+        <Typography variant="body1" sx={{ mr: 2, marginBottom: 2 }}>
+          Completa los siguientes datos para realizar una simulación de crédito:
+        </Typography>
         <form onSubmit={handleSubmit}>
           <CreditForm
             creditType={creditType}
@@ -115,6 +118,7 @@ const CreditSimulate = () => {
           <Button
             variant="contained"
             color="secondary"
+            size="large"
             type="submit"
             fullWidth
             startIcon={<RequestQuoteIcon />}
@@ -180,7 +184,7 @@ const CreditSimulate = () => {
 
             {/* Fila: Cuota solicitada */}
             <Grid item xs={4}>
-              <Typography variant="body1">Cuota solicitada:</Typography>
+              <Typography variant="body1">Cuota interés escogido:</Typography>
             </Grid>
             <Grid item xs={3}>
               <Typography
@@ -237,7 +241,7 @@ const CreditSimulate = () => {
               <Typography variant="caption" color="textSecondary">
                 {simulationResult
                   ? "Los valores presentados son aproximados y pueden variar según las condiciones finales de la solicitud de crédito."
-                  : "Ingrese los valores solicitados para simular un crédito."}
+                  : "Para ver los resultados, primero ingrese los valores solicitados y luego presione \"Simular\"."}
               </Typography>
             </Grid>
           </Grid>

@@ -43,7 +43,7 @@ export default function Sidemenu({ open, toggleDrawer }) {
           <ListItemIcon>
             <PeopleAltIcon />
           </ListItemIcon>
-          <ListItemText primary="Perfil" />
+          <ListItemText primary="Mi Perfil" />
         </ListItemButton>
 
         <Divider />

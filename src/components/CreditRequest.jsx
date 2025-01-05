@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableRow } from "@mui/material";
 import { getCreditType } from "./CreditUtils";
 import { documentDescriptions, validateValues } from "./CreditUtils";
 import RequerimentsDialog from "./CreditRequerimentsDialog";
+import AddCardIcon from '@mui/icons-material/AddCard';
 
 const CreditRequest = () => {
   const [creditType, setCreditType] = useState("");
@@ -100,6 +101,9 @@ const CreditRequest = () => {
       <Grid container spacing={2} >
       {/* Columna izquierda: Formulario */}
         <Grid item xs={12} md={6}>
+          <Typography variant="body1" sx={{ mr: 2, marginBottom: 2 }}>
+            Completa los siguientes datos para solicitar un crédito:
+          </Typography>
           <form onSubmit={handleSubmit}>
             <CreditForm
               creditType={creditType}
@@ -123,7 +127,7 @@ const CreditRequest = () => {
               isRequest={true}
             />
             
-          <Grid container direction="column" alignItems="center" sx={{ marginTop: 4 }}>
+          <Grid container direction="column" alignItems="center">
             {isLoggedIn && (
               <>
                 <Grid item>
@@ -131,10 +135,17 @@ const CreditRequest = () => {
                     variant="contained"
                     color="secondary"
                     type="submit"
-                    sx={{
+                    size="large"
+                    startIcon={<AddCardIcon />}
+                    sx={{ 
                       marginTop: 2,
-                      width: "100%",
-                      display: "block",
+                      width: "100%", 
+                      marginLeft: "auto", 
+                      marginRight: "auto",
+                      display: "flex", 
+                      flexDirection: "row", 
+                      alignItems: "center", 
+                      justifyContent: "center",
                     }}
                     disabled={!isPeriodMountEntered}
                   >
@@ -184,6 +195,11 @@ const CreditRequest = () => {
               ))}
             </List>
           </>
+        )}
+        {!creditType && (
+          <Typography variant="body1" sx={{ mr: 2 }}>
+            Selecciona un tipo de crédito para ver los documentos requeridos.
+          </Typography>
         )}
       </Grid>
 

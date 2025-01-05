@@ -71,7 +71,16 @@ export default function Navbar() {
             edge="start"
             color="inherit"
             aria-label="menu"
-            sx={{ mr: 2 }}
+            sx={{
+              mr: 2,
+              width: 56, 
+              height: 56, 
+              borderRadius: "50%", 
+              backgroundColor: "rgba(0, 0, 0, 0.4)", // Fondo claro (opcional)
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.2)", // Color de fondo al pasar el mouse
+              },
+            }}
             onClick={toggleDrawer(true)}
           >
             <MenuIcon />

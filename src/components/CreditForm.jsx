@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Grid, TextField, MenuItem, Slider, Typography } from "@mui/material";
-import { fetchRestrictions } from "./CreditUtils";
+import { Grid, TextField, MenuItem, Slider, Typography, Tooltip } from "@mui/material";
+import { fetchRestrictions , getCreditType } from "./CreditUtils";
 
 const CreditForm = ({   
   creditType, setCreditType, loanPeriod, setLoanPeriod, creditMount,
@@ -8,7 +8,8 @@ const CreditForm = ({
   restrictions, setRestrictions, isValuesEntered, setIsValuesEntered, error, 
  setIsPeriodMountEntered, initialValues = {} , isRequest, setIsRequest, isLoggedIn
 }) => {
-  
+  const [activeField, setActiveField] = useState(null);
+
   useEffect(() => {
     if (isValuesEntered) {
       const getRestrictions = async () => {
@@ -74,6 +75,13 @@ const CreditForm = ({
     }
   };
 
+  const [allValuesEntered, setAllValuesEntered] = useState(false);
+  const handleValuesEntered = () => {
+    if (loanPeriod && creditMount && creditType && propertyValue && annualRate) {
+      setAllValuesEntered(true);
+    }
+  };
+
   const handleSlideChange = (e, setValue) => {
     const value = parseFloat(e.target.value);
     setValue(value);
@@ -107,10 +115,12 @@ const CreditForm = ({
   };
 
   return (
-    <Grid container spacing={1}>
+    <Grid container spacing={2}>
       {/* Tipo de Crédito */}
       <Grid item xs={12} md={6}>
         <TextField
+          onFocus={() => setActiveField("creditType")}
+          onBlur={() => setActiveField(null)}        
           select
           fullWidth
           label="Tipo de Crédito"
@@ -118,8 +128,19 @@ const CreditForm = ({
           onChange={(e) => {
             setCreditType(e.target.value);
             handleTypePropertyChange();
+            handleValuesEntered();
           }}
           required
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              fieldset: {
+                borderColor: !creditType ? "#1976d2" : "primary", // Azul si no se ha ingresado, gris por defecto si ya tiene valor
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "#1976d2", // Azul cuando está enfocado
+              },
+            },
+          }}          
           disabled={isRequest && !isLoggedIn}
         >
           <MenuItem value="">Seleccionar</MenuItem>
@@ -133,14 +154,27 @@ const CreditForm = ({
       {/* Valor de la Propiedad */}
       <Grid item xs={12} md={6}>
         <TextField
+          onFocus={() => setActiveField("propertyValue")}
+          onBlur={() => setActiveField(null)}              
           fullWidth
           label="Valor de la Propiedad"
           value={formatNumber(propertyValue)}
           onChange={(e) => {
             handleChange(e, setPropertyValue);
             handleTypePropertyChange();
+            handleValuesEntered();
           }}
           required
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              fieldset: {
+                borderColor: !propertyValue && creditType ? "#1976d2" : "primary", // Azul si el tipo está definido pero no el valor; gris por defecto en otros casos
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: !propertyValue ? "#1976d2" : "primary", // Azul cuando está enfocado
+              },
+            },
+          }}       
           disabled={isRequest && !isLoggedIn}
         />
       </Grid>
@@ -148,36 +182,83 @@ const CreditForm = ({
       {/* Período del Préstamo */}
       <Grid item xs={12} md={6}>
         <TextField
+          onFocus={() => setActiveField("loanPeriod")}
+          onBlur={() => setActiveField(null)}              
           fullWidth
           type="number"
           label="Período del Préstamo (años)"
           value={loanPeriod}
-          onChange={(e) => handleChange(e, setLoanPeriod, restrictions.maxLoanPeriod)}
+          onChange={(e) => { handleChange(e, setLoanPeriod, restrictions.maxLoanPeriod); handleValuesEntered(); }}
           inputProps={{
             min: 1,
             max: restrictions.maxLoanPeriod,
           }}
           required
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              fieldset: {
+                borderColor: isValuesEntered && !loanPeriod ? "#1976d2" : "primary", // Azul si el tipo está definido pero no el valor; gris por defecto en otros casos
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: !loanPeriod ? "#1976d2" : "primary", // Azul cuando está enfocado
+              },
+            },
+          }}                
           disabled={!isValuesEntered} 
         />
-        <Typography variant="caption">
-          Máximo: {restrictions.maxLoanPeriod} años
-        </Typography>
+        <Tooltip 
+          title={
+            `Cantidad máxima de años para un crédito de tipo "${getCreditType(creditType) || 'Seleccionar tipo de crédito'}". 
+            Presione "VER CONDICIONES" para más información.`
+          } 
+          arrow
+          placement="bottom"
+        >
+          <Typography variant="caption" sx={{ cursor: "help" }}>
+            <span style={{ color: "#FFC107", fontWeight: "bold" }}>Máximo:</span> {restrictions.maxLoanPeriod?.toLocaleString("es-CL")} años
+          </Typography>
+        </Tooltip>
+
       </Grid>
 
       {/* Monto del Crédito */}
       <Grid item xs={12} md={6}>
         <TextField
+          onFocus={() => setActiveField("creditMount")}
+          onBlur={() => setActiveField(null)}              
           fullWidth
           label="Monto del Crédito"
           value={formatNumber(creditMount)}
-          onChange={(e) => handleChange(e, setCreditMount, restrictions.maxFinancingMount)}
+          onChange={(e) => { handleChange(e, setCreditMount, restrictions.maxFinancingMount); handleValuesEntered(); }}
           required
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              fieldset: {
+                borderColor: isValuesEntered && !creditMount ? "#1976d2" : "primary", // Azul si el tipo está definido pero no el valor; gris por defecto en otros casos
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: !creditMount ? "#1976d2" : "primary", // Azul cuando está enfocado
+              },
+            },
+          }}              
           disabled={!isValuesEntered} 
         />
-        <Typography variant="caption">
-          Máximo: {restrictions.maxFinancingMount?.toLocaleString("es-CL")}
-        </Typography>
+        <Tooltip 
+          title={
+            `Corresponde a un %${creditType==="FIRSTHOME" && "80"
+              || creditType==="SECONDHOME" && "70"
+              || creditType==="COMERCIAL" && "60"
+              || creditType==="REMODELING" && "50"
+            } del valor de la propiedad para un crédito de tipo "${getCreditType(creditType) || 'Seleccionar tipo de crédito'}". 
+            Presione "VER CONDICIONES" para más información.`
+          } 
+          arrow
+          placement="bottom"
+        >       
+          <Typography variant="caption">
+            <span style={{ color: "#FFC107", fontWeight: "bold" }}>Máximo:</span> $ {restrictions.maxFinancingMount?.toLocaleString("es-CL")}
+          </Typography>
+        </Tooltip>
       </Grid>
 
       {/* Tasa de Interés */}
@@ -186,8 +267,10 @@ const CreditForm = ({
           Tasa de Interés Anual: {annualRate ? parseFloat(annualRate).toFixed(1) : "0"}%
         </Typography>
         <Slider
+          onFocus={() => setActiveField("annualRate")}
+          onBlur={() => setActiveField(null)}              
           value={typeof annualRate === "number" ? annualRate : 0} 
-          onChange={(e) => handleSlideChange(e, setAnnualRate)}
+          onChange={(e) => { handleSlideChange(e, setAnnualRate); handleValuesEntered(); }}
           min={typeof restrictions.minAnnualRate === "number" ? restrictions.minAnnualRate : 0}
           max={typeof restrictions.maxAnnualRate === "number" ? restrictions.maxAnnualRate : 10}
           step={0.1}
@@ -217,13 +300,26 @@ const CreditForm = ({
 
       </Grid>
 
-      {!isValuesEntered && isLoggedIn && (
-        <Grid item xs={12}>
-          <Typography color="textSecondary">
-            Ingrese el tipo de crédito y el valor de la propiedad para continuar.
-          </Typography>
-        </Grid>
-      )}
+      <Grid item xs={12} sx={{ textAlign: "center" }}>
+        <Typography
+          variant="body2"
+          sx={{
+            fontStyle: "italic",
+            color: "text.secondary",
+          }}
+        >
+          {activeField === "creditType" && "¿Qué tipo de crédito deseas escoger?"}
+          {activeField === "propertyValue" && "¿Cuál es el valor de la propiedad?"}
+          {activeField === "loanPeriod" && "¿A cuántos años pedirás el crédito?"}
+          {activeField === "creditMount" && "¿Cuál es el monto que quieres solicitar?"}
+          {activeField === "annualRate" && "¿Qué interés vas a solicitar?"}
+          {activeField === null && !creditType && !propertyValue && "Ingrese el tipo de crédito y el valor de la propiedad para continuar."}
+          {activeField === null && creditType && !propertyValue && "Ingresa el valor de la propiedad para continuar."}
+          {activeField === null && isValuesEntered && !allValuesEntered && "Completa los campos restantes para continuar."}
+          {activeField === null && allValuesEntered && !isRequest && "Todos los campos están completos. Haz click en el botón para simular"}
+          {activeField === null && allValuesEntered && isRequest && "Todos los campos están completos. Haz click en el botón para solicitar"}
+        </Typography>
+      </Grid>
     </Grid>
   );
 };

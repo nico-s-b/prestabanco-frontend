@@ -1,264 +1,269 @@
 import React, { useState, useEffect } from 'react';
 import evaluationService from '../services/evaluation.service'; 
-import Button from "@mui/material/Button";
-import EditIcon from "@mui/icons-material/Edit";
 import { formatISO, format, parseISO  } from "date-fns";
-import creditService from "../services/credit.service";
-import CreditTable from "./CreditTable";
 import { useNavigate } from "react-router-dom";
+import {
+  TextField,
+  Button,
+  MenuItem,
+  Grid,
+  Typography,
+  Box,
+  RadioGroup,
+  Radio,
+  FormControlLabel,
+} from "@mui/material";
+import SaveIcon from '@mui/icons-material/Save';
 
 const ClientInfo = () => {
   const navigate = useNavigate();
-  const [accountData, setAccountData] = useState({
-      accountBalance: '',
-      startDate: '',
-  });
-  const [creditRecordData, setCreditRecordData] = useState({
-    debtAmount: '',
-    lastDebtDate: '',
-    oldestUnpaidInstallmentDate: ''
-  });
-  const [employmentData, setEmploymentData] = useState({
-    isWorking: false,
-    isEmployee: false,
-    currentWorkStartDate: '',
-    monthlyIncome: '',
-    lastTwoYearIncome: ''
-  });
-  const [credits, setCredits] = useState([]);
-
   const userId = localStorage.getItem("userId");
+  const [clientInfoData, setClientInfoData] = useState({
+    monthlyIncome: "",
+    lastTwoYearIncome: "",
+    totalDebt: "",
+    lastDebtDate: "",
+    isEmployee: false,
+    currentJobStartDate: "",
+    lastJobEndDate: "",
+    accountBalance: "",
+    accountStartDate: "",
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      try{
-        const response = await creditService.getCreditsByClient(userId);
-        setCredits(response.data);
-      } catch (error) {
-        console.error("Error al obtener los créditos del usuario:", error);
-      }
-
       try {
-        const accountResponse = await evaluationService.getAccount(userId);
-        const creditResponse = await evaluationService.getRecord(userId);
-        const employmentResponse = await evaluationService.getEmployment(userId);
+        const clientInfo = await evaluationService.getClientInfo(userId);
 
-        //Formating dates for frontend
-        if (accountResponse.data) {
-          setAccountData({
-            ...accountResponse.data,
-            startDate: accountResponse.data.startDate
-                ? format(parseISO(accountResponse.data.startDate), 'yyyy-MM-dd')
-                : ''
+        if (clientInfo.data) {
+          setClientInfoData({
+            ...clientInfo.data,
+            lastDebtDate: clientInfo.data.lastDebtDate
+              ? format(parseISO(clientInfo.data.lastDebtDate), "yyyy-MM-dd")
+              : "",
+            currentJobStartDate: clientInfo.data.currentJobStartDate
+              ? format(parseISO(clientInfo.data.currentJobStartDate), "yyyy-MM-dd")
+              : "",
+            lastJobEndDate: clientInfo.data.lastJobEndDate
+              ? format(parseISO(clientInfo.data.lastJobEndDate), "yyyy-MM-dd")
+              : "",
+            accountStartDate: clientInfo.data.accountStartDate
+              ? format(parseISO(clientInfo.data.accountStartDate), "yyyy-MM-dd")
+              : "",
           });
-        }
-
-        if (creditResponse.data) {
-          setCreditRecordData({
-            ...creditResponse.data,
-            lastDebtDate: creditResponse.data.lastDebtDate
-                ? format(parseISO(creditResponse.data.lastDebtDate), 'yyyy-MM-dd')
-                : '',
-            oldestUnpaidInstallmentDate: creditResponse.data.oldestUnpaidInstallmentDate
-                ? format(parseISO(creditResponse.data.oldestUnpaidInstallmentDate), 'yyyy-MM-dd')
-                : ''
-          });
-        }
-
-        if (employmentResponse.data) {
-            setEmploymentData({
-              ...employmentResponse.data,
-              currentWorkStartDate: employmentResponse.data.currentWorkStartDate
-                  ? format(parseISO(employmentResponse.data.currentWorkStartDate), 'yyyy-MM-dd')
-                  : ''
-            });
         }
       } catch (error) {
-          console.log("Error cargando datos:", error);
+        console.error("Error cargando datos:", error);
       } finally {
-          setIsLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchData();
   }, [userId]);
 
-  const handleAccountChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setAccountData({ ...accountData, [name]: value });
+    setClientInfoData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleCreditChange = (e) => {
-    const { name, value } = e.target;
-    setCreditRecordData({ ...creditRecordData, [name]: value });
-  };
-
-  const handleEmploymentChange = (e) => {
-    const { name, value } = e.target;
-    setEmploymentData({ ...employmentData, [name]: value });
-  };
-
-  const handleEditClick = (id) => {
-    navigate(`/credit/edit/${id}`);
-  }
-
-  const handleDelete = (id) => {
-    navigate(`/credit/edit/${id}`);
+  const validateValues = (clientInfoData, setError) => {
+    return true;
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    //Date formating for backend (ZonedDateTime)
-    const formattedAccountData = {
-      ...accountData,
-      startDate: formatISO(new Date(accountData.startDate))
-    };
-    const formattedCreditRecordData = {
-      ...creditRecordData,
-      lastDebtDate: formatISO(new Date(creditRecordData.lastDebtDate)),
-      oldestUnpaidInstallmentDate: formatISO(new Date(creditRecordData.oldestUnpaidInstallmentDate))
-    };
-    const formattedEmploymentData = {
-      ...employmentData,
-      currentWorkStartDate: formatISO(new Date(employmentData.currentWorkStartDate))
+    // Formateo de fechas para el backend
+    const formattedClientInfoData = {
+      ...clientInfoData,
+      lastDebtDate: clientInfoData.lastDebtDate
+        ? formatISO(new Date(clientInfoData.lastDebtDate))
+        : null,
+      currentJobStartDate: clientInfoData.currentJobStartDate
+        ? formatISO(new Date(clientInfoData.currentJobStartDate))
+        : null,
+      lastJobEndDate: clientInfoData.lastJobEndDate
+        ? formatISO(new Date(clientInfoData.lastJobEndDate))
+        : null,
+      accountStartDate: clientInfoData.accountStartDate
+        ? formatISO(new Date(clientInfoData.accountStartDate))
+        : null,
     };
 
     try {
-        await evaluationService.createOrUpdateAccount(userId, formattedAccountData);
-        await evaluationService.createOrUpdateRecord(userId, formattedCreditRecordData);
-        await evaluationService.createOrUpdateEmployment(userId, formattedEmploymentData);
-        alert("Datos actualizados correctamente");
+      await evaluationService.saveClientInfo(formattedClientInfoData);
+      alert("Datos actualizados correctamente");
+      navigate(`/client/${userId}`);
     } catch (error) {
-        console.error("Error al actualizar los datos:", error);
-        alert("Error al actualizar los datos");
+      console.error("Error al actualizar los datos:", error);
+      alert("Error al actualizar los datos");
     }
   };
 
   if (isLoading) {
-      return <div>Cargando datos de la cuenta...</div>;
+    return <p>Cargando datos...</p>;
+  }
+
+  if (isLoading) {
+    return <Typography>Cargando datos...</Typography>;
   }
 
   return (
-      <>
-      <form onSubmit={handleSubmit}>
-        <h2>Cuenta de ahorro</h2>
-        <div>
-          <label>Saldo en cuenta de ahorro: </label>
-          <input
-            type="number"
-            name="accountBalance"
-            value={accountData.accountBalance || ''}
-            onChange={handleAccountChange}
-            placeholder="Ingrese el balance de la cuenta" />
-        </div>
-        <div>
-          <label>Fecha de apertura de cuenta: </label>
-          <input
-            type="date"
-            name="startDate"
-            value={accountData.startDate || ''}
-            onChange={handleAccountChange}
-            placeholder="Ingrese la fecha de inicio" />
-        </div>
+    <Box sx={{ maxWidth: 600, margin: "auto", mt: 4 }}>
+    <form onSubmit={handleSubmit}>
+      <Grid container spacing={2}>
+        {/* Situación laboral */}
+        <Grid item xs={12}>
+          <Typography variant="h6">Situación Laboral</Typography>
+        </Grid>
 
-        <h2>Historial crediticio</h2>
-        <div>
-          <label>Monto total de deudas: </label>
-          <input
-            type="number"
-            name="debtAmount"
-            value={creditRecordData.debtAmount || ''}
-            onChange={handleCreditChange}
-            placeholder="Ingrese el monto de deuda" />
-        </div>
-        <div>
-          <label>Fecha en que contrajo última deuda:</label>
-          <input
-            type="date"
-            name="lastDebtDate"
-            value={creditRecordData.lastDebtDate || ''}
-            onChange={handleCreditChange}
-            placeholder="Ingrese la fecha de última deuda" />
-        </div>
-        <div>
-          <label>Fecha de cuota más antigua impaga:</label>
-          <input
-            type="date"
-            name="oldestUnpaidInstallmentDate"
-            value={creditRecordData.oldestUnpaidInstallmentDate || ''}
-            onChange={handleCreditChange}
-            placeholder="Ingrese la fecha de cuota impaga más antigua" />
-        </div>
-
-        <h2>Antecedentes laborales</h2>
-        <div>
-          <label>¿Está trabajando actualmente?</label>
-          <input
-            type="checkbox"
+        <Grid item xs={12}>
+          <Typography>¿Está trabajando actualmente?</Typography>
+          <RadioGroup
+            row
             name="isWorking"
-            checked={employmentData.isWorking || false}
-            onChange={(e) => setEmploymentData({ ...employmentData, isWorking: e.target.checked })} />
-        </div>
-        <div>
-          <label>¿Es empleado con contrato?</label>
-          <input
-            type="checkbox"
-            name="isEmployee"
-            checked={employmentData.isEmployee || false}
-            onChange={(e) => setEmploymentData({ ...employmentData, isEmployee: e.target.checked })} />
-        </div>
-        {employmentData.isEmployee ?
-          <div>
-            <div>
-              <label>Fecha de inicio de empleo actual: </label>
-              <input
-                type="date"
-                name="currentWorkStartDate"
-                value={employmentData.currentWorkStartDate || ''}
-                onChange={handleEmploymentChange}
-                placeholder="Ingrese la fecha de inicio del empleo actual" />
-            </div>
-            <div>
-              <label>Ingreso mensual: </label>
-              <input
-                type="number"
-                name="monthlyIncome"
-                value={employmentData.monthlyIncome || ''}
-                onChange={handleEmploymentChange}
-                placeholder="Ingrese el ingreso mensual" />
-            </div>
-          </div>
-          :
-          <div>
-            <div>
-              <label>Ingresos totales de los últimos dos años: </label>
-              <input
-                type="number"
-                name="lastTwoYearIncome"
-                value={employmentData.lastTwoYearIncome || ''}
-                onChange={handleEmploymentChange}
-                placeholder="Ingrese el ingreso acumulado de los últimos dos años" />
-            </div>
-          </div>}
+            value={clientInfoData.isWorking}
+            onChange={handleInputChange}
+          >
+            <FormControlLabel value="yes" control={<Radio />} label="Sí" />
+            <FormControlLabel value="no" control={<Radio />} label="No" />
+          </RadioGroup>
+        </Grid>
 
-        <br />
-        <Button
-          type="submit"
-          variant="contained"
-          color="info"
-          startIcon={<EditIcon />}
-        >
-          Guardar Cambios
-        </Button>
-      </form>
+        {clientInfoData.isWorking === "yes" && (
+          <>
+            <Grid item xs={12}>
+              <Typography>¿Es empleado dependiente?</Typography>
+              <RadioGroup
+                row
+                name="isEmployee"
+                value={clientInfoData.isEmployee}
+                onChange={handleInputChange}
+              >
+                <FormControlLabel value="yes" control={<Radio />} label="Sí" />
+                <FormControlLabel value="no" control={<Radio />} label="No" />
+              </RadioGroup>
+            </Grid>
 
-    <div>        
-      <CreditTable credits={credits} handleEditClick={handleEditClick} handleDelete={handleDelete} />
-    </div>
+            {clientInfoData.isEmployee === "yes" && (
+              <>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Fecha Inicio Trabajo Actual"
+                    name="currentJobStartDate"
+                    type="date"
+                    value={clientInfoData.currentJobStartDate}
+                    onChange={handleInputChange}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Ingreso Mensual"
+                    name="monthlyIncome"
+                    type="number"
+                    value={clientInfoData.monthlyIncome}
+                    onChange={handleInputChange}
+                    fullWidth
+                  />
+                </Grid>
+              </>
+            )}
 
-    </>
+            {clientInfoData.isEmployee === "no" && (
+              <Grid item xs={12}>
+                <TextField
+                  label="Ingreso Últimos 2 Años"
+                  name="lastTwoYearIncome"
+                  type="number"
+                  value={clientInfoData.lastTwoYearIncome}
+                  onChange={handleInputChange}
+                  fullWidth
+                />
+              </Grid>
+            )}
+          </>
+        )}
+
+        {clientInfoData.isWorking === "no" && (
+          <Grid item xs={12}>
+            <TextField
+              label="Fecha Fin Último Trabajo"
+              name="lastJobEndDate"
+              type="date"
+              value={clientInfoData.lastJobEndDate}
+              onChange={handleInputChange}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+        )}
+
+        {/* Situación financiera */}
+        <Grid item xs={12}>
+          <Typography variant="h6">Situación Financiera</Typography>
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextField
+            label="Deuda Total"
+            name="totalDebt"
+            type="number"
+            value={clientInfoData.totalDebt}
+            onChange={handleInputChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            label="Fecha Última Deuda"
+            name="lastDebtDate"
+            type="date"
+            value={clientInfoData.lastDebtDate}
+            onChange={handleInputChange}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+          />
+        </Grid>
+
+        {/* Ahorros */}
+        <Grid item xs={12}>
+          <Typography variant="h6">Ahorros</Typography>
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextField
+            label="Saldo Cuenta de Ahorro"
+            name="accountBalance"
+            type="number"
+            value={clientInfoData.accountBalance}
+            onChange={handleInputChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            label="Fecha Inicio Cuenta de Ahorro"
+            name="accountStartDate"
+            type="date"
+            value={clientInfoData.accountStartDate}
+            onChange={handleInputChange}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+          />
+        </Grid>
+
+        <Grid item xs={12} textAlign="center">
+          <Button variant="contained" color="primary" type="submit">
+            Guardar
+          </Button>
+        </Grid>
+      </Grid>
+    </form>
+  </Box>
   );
 };
 

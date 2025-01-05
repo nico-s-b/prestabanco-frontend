@@ -34,7 +34,7 @@ const LoanRequirementsTable = () => {
   ];
 
   return (
-    <TableContainer component={Paper} sx={{ margin: "0 auto", maxWidth: "90%" }}>
+    <TableContainer component={Paper} sx={{ margin: "0 auto", maxWidth: "100%" }}>
       <Typography variant="h6" sx={{ margin: 2 }} align="center">
         Requerimientos y Condiciones Generales de los Tipos de Crédito
       </Typography>

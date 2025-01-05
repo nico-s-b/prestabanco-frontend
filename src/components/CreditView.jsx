@@ -67,7 +67,7 @@ const CreditView = () => {
         {/* Columna derecha: Documentos */}
         <Grid item xs={12} md={6}>
           <Typography variant="body1" color="textSecondary" paragraph>
-            Sube los documentos requeridos por la solicitud de crédito.
+            Necesitarás subir los siguientes documentos requeridos por la solicitud:
           </Typography>
           {creditInfo && (
             <Documents

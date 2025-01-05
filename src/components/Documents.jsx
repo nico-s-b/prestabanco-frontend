@@ -223,23 +223,53 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
 
 
       <Grid container spacing={2} alignItems="center">
+      <Grid item xs={12} sx={{ textAlign: "center" }}>
+        <Typography
+          variant="body2"
+          sx={{
+            fontStyle: "italic",
+            color: "text.secondary",
+          }}
+        >
+          {!selectedDocumentLabel && "Elige el tipo de documento que deseas subir:"}
+          {selectedDocumentLabel && !selectedFile && "Elige un archivo para subir"}
+          {selectedDocumentLabel && selectedFile && "Haz clic en 'Subir Documento' para completar la acción"}
+        </Typography>
+        </Grid>
         {/* Fila 1: Select y Input de archivo */}
         <Grid item xs={12} md={6}>
-          <FormControl fullWidth>
-            <InputLabel id="document-type-label">Selecciona el tipo de documento</InputLabel>
-            <Select
-              labelId="document-type-label"
-              value={selectedDocumentLabel}
-              onChange={(e) => setSelectedDocumentLabel(e.target.value)}
-              displayEmpty
-            >
-              {missingDocuments.map((docLabel) => (
-                <MenuItem key={docLabel} value={docLabel}>
-                  {docLabel}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <FormControl 
+          fullWidth 
+          //error={!selectedDocumentLabel} 
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: !selectedDocumentLabel ? "#1976d2" : "inherit", 
+              },
+              "&:hover fieldset": {
+                borderColor: !selectedDocumentLabel ? "#115293" : "inherit",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: !selectedDocumentLabel ? "#115293" : "inherit",
+              },
+            },
+          }}
+        >
+          <InputLabel id="document-type-label">Selecciona el tipo de documento</InputLabel>
+          <Select
+            labelId="document-type-label"
+            value={selectedDocumentLabel}
+            onChange={(e) => setSelectedDocumentLabel(e.target.value)}
+            displayEmpty
+          >
+            {missingDocuments.map((docLabel) => (
+              <MenuItem key={docLabel} value={docLabel}>
+                {docLabel}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
         </Grid>
         
         <Grid item xs={12} md={6}>
@@ -247,6 +277,16 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
             variant="outlined"
             component="label"
             fullWidth
+            sx={{
+              backgroundColor: selectedDocumentLabel ? "primary.main" : "inherit",
+              color: selectedDocumentLabel ? "white" : "inherit",
+              borderColor: selectedDocumentLabel ? "primary.main" : "inherit",
+              "&:hover": {
+                backgroundColor: selectedDocumentLabel ? "primary.dark" : "inherit",
+                borderColor: selectedDocumentLabel ? "primary.dark" : "inherit",
+              },
+            }}
+            disabled={!selectedDocumentLabel}
           >
             Elegir archivo
             <input

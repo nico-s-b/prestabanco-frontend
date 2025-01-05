@@ -26,7 +26,7 @@ const RequerimentsDialog = () => {
         onClick={handleLoanRequirementsClick}
         sx={{
             color: "text.primary", // Opcional: texto en un color neutro
-            borderColor: "rgba(255, 255, 255, 0.4)", // Opcional: borde gris claro
+            borderColor: "rgb(46, 130, 214)", // Opcional: borde gris claro
             "&:hover": {
             borderColor: "rgba(0, 0, 0, 0.5)", // Borde un poco más oscuro al hover
             backgroundColor: "rgba(0, 0, 0, 0.04)", // Fondo gris claro al hover
