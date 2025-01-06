@@ -6,8 +6,8 @@ import { SessionContext } from "../services/SessionContext";
 
 
 const Home = () => {
-  //const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const { isLoggedIn, setIsLoggedIn  } = useContext(SessionContext);
+  const userType = localStorage.getItem("userType");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,7 +36,11 @@ const Home = () => {
 
   const handleSimulateClick = () => {
     navigate("/credit/simulate")
-  };  
+  };
+
+  const handleEvaluateClick = () => {
+    navigate("/credit/all")
+  }
 
   return (
     <Grid container direction="column" alignItems="center" spacing={4} sx={{ padding: 4 }}>
@@ -46,13 +50,35 @@ const Home = () => {
           PrestaBanco: Sistema de Solicitudes de Crédito
         </Typography>
       </Grid>
-
-    {/* Botones principales */}
-    <Grid container alignItems="center" justifyContent="center" spacing={4}>
-      {isLoggedIn ? (
+  
+      {/* Botones principales */}
+      {isLoggedIn && userType === "EXECUTIVE" ? (
         <>
+          {/* Evaluar Créditos */}
+          <Grid container item xs={12} direction="column" alignItems="center">
+            <Typography variant="body1" sx={{ marginBottom: 1, textAlign: "center" }}>
+              ¿Necesitas evaluar créditos?
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              sx={{
+                backgroundColor: "#66BB6A",
+                color: "#fff",
+                "&:hover": { backgroundColor: "#388E3C" }, // Verde más oscuro al pasar el mouse
+                minWidth: "200px",
+              }}
+              onClick={handleEvaluateClick}
+            >
+              Evaluar Créditos
+            </Button>
+          </Grid>
+        </>
+      ) : isLoggedIn && userType === "CLIENT" ? (
+        <>
+        <Grid container item xs={12} spacing={2} justifyContent="center" alignItems="center">
           {/* Simular Crédito */}
-          <Grid container item xs={12} md={5} direction="column" alignItems="center">
+          <Grid item xs={12} md={5} container direction="column" alignItems="center">
             <Typography variant="body1" sx={{ marginBottom: 1, textAlign: "center" }}>
               ¿Quieres realizar una simulación?
             </Typography>
@@ -62,7 +88,7 @@ const Home = () => {
               sx={{
                 backgroundColor: "#66BB6A",
                 color: "#fff",
-                "&:hover": { backgroundColor: "#388E3C" }, 
+                "&:hover": { backgroundColor: "#388E3C" }, // Verde más oscuro al pasar el mouse
                 minWidth: "200px",
               }}
               onClick={handleSimulateClick}
@@ -70,9 +96,9 @@ const Home = () => {
               Simular Crédito
             </Button>
           </Grid>
-
+      
           {/* Solicitar Crédito */}
-          <Grid container item xs={12} md={5} direction="column" alignItems="center">
+          <Grid item xs={12} md={5} container direction="column" alignItems="center">
             <Typography variant="body1" sx={{ marginBottom: 1, textAlign: "center" }}>
               ¿Quieres pedir un crédito?
             </Typography>
@@ -82,7 +108,7 @@ const Home = () => {
               sx={{
                 backgroundColor: "#1976D2",
                 color: "#fff",
-                "&:hover": { backgroundColor: "#115293" },
+                "&:hover": { backgroundColor: "#115293" }, // Azul más oscuro al pasar el mouse
                 minWidth: "200px",
               }}
               onClick={handleRequestClick}
@@ -90,7 +116,10 @@ const Home = () => {
               Solicitar Crédito
             </Button>
           </Grid>
-        </>
+        </Grid>
+      </>
+      
+      
       ) : (
         <Grid item xs={12}>
           <Box textAlign="center">
@@ -98,56 +127,80 @@ const Home = () => {
               ¿Quieres pedir un crédito? Inicia sesión o regístrate con nosotros.
             </Typography>
             <Box display="flex" justifyContent="center" gap={2}>
-            <Button
-              variant="contained"
-              size="large"
-              sx={{
-                backgroundColor: "#1976D2", 
-                color: "#fff",
-                "&:hover": { backgroundColor: "#115293" }, 
-                minWidth: "150px",
-              }}
-              onClick={handleLoginClick}
-            >
-              Iniciar Sesión
-            </Button>
-            <Button
-              variant="contained"
-              size="large"
-              sx={{
-                backgroundColor: "#66BB6A", 
-                color: "#fff",
-                "&:hover": { backgroundColor: "#388E3C" },
-                minWidth: "150px",
-              }}
-              onClick={handleRegisterClick}
-            >
-              Registrarse
-            </Button>
+              <Button
+                variant="contained"
+                size="large"
+                sx={{
+                  backgroundColor: "#1976D2",
+                  color: "#fff",
+                  "&:hover": { backgroundColor: "#115293" },
+                  minWidth: "150px",
+                }}
+                onClick={handleLoginClick}
+              >
+                Iniciar Sesión
+              </Button>
+              <Button
+                variant="contained"
+                size="large"
+                sx={{
+                  backgroundColor: "#66BB6A",
+                  color: "#fff",
+                  "&:hover": { backgroundColor: "#388E3C" },
+                  minWidth: "150px",
+                }}
+                onClick={handleRegisterClick}
+              >
+                Registrarse
+              </Button>
             </Box>
           </Box>
         </Grid>
       )}
-    </Grid>
-
-
+  
       {/* Tabla */}
       <Grid item xs={12} sx={{ width: "100%" }}>
+      <Typography
+          variant="body1"
+          sx={{
+            textAlign: "center", 
+            fontStyle: "italic", 
+            marginBottom: 2,
+          }}
+        >         
+          En PrestaBanco ofrecemos créditos para diferentes necesidades.   
+          <br />
+          A continuación, te presentamos los requisitos de nuestros créditos:
+        </Typography>
         <LoanRequirementsTable />
       </Grid>
-
+  
       {/* Texto sobre la aplicación */}
       <Grid item xs={12}>
-        <Typography variant="body2" align="center" sx={{ marginTop: 4, fontSize: "0.9rem", color: "text.secondary" }}>
+        <Typography
+          variant="body2"
+          align="center"
+          sx={{ marginTop: 0, fontSize: "0.9rem", color: "text.secondary" }}
+        >
           PrestaBanco es una aplicación web para gestionar la petición, evaluación y seguimiento de solicitudes de
           crédito. Esta aplicación ha sido desarrollada usando tecnologías como{" "}
-          <a href="https://spring.io/projects/spring-boot" style={{ color: "#1976d2" }}>Spring Boot</a> (para el backend),{" "}
-          <a href="https://reactjs.org/" style={{ color: "#1976d2" }}>React</a> (para el Frontend), y{" "}
-          <a href="https://www.postgresql.org/" style={{ color: "#1976d2" }}>PostgreSQL</a> (para la base de datos).
+          <a href="https://spring.io/projects/spring-boot" style={{ color: "#1976d2" }}>
+            Spring Boot
+          </a>{" "}
+          (para el backend),{" "}
+          <a href="https://reactjs.org/" style={{ color: "#1976d2" }}>
+            React
+          </a>{" "}
+          (para el Frontend), y{" "}
+          <a href="https://www.postgresql.org/" style={{ color: "#1976d2" }}>
+            PostgreSQL
+          </a>{" "}
+          (para la base de datos).
         </Typography>
       </Grid>
     </Grid>
   );
+  
 
   };
   

@@ -7,6 +7,7 @@ import clientService from "../services/client.service";
 import CreditTable from "./CreditTable";
 import trackingService from "../services/tracking.service";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableRow, Paper , Grid} from '@mui/material';
 
 const ClientProfile = () => {
   const navigate = useNavigate();
@@ -87,27 +88,74 @@ const ClientProfile = () => {
 
   return (
     <div>
-      <h1>Perfil del usuario</h1>
+    <Paper sx={{ maxWidth: 500, margin: 'auto', padding: 2, marginTop: 4 }}>
+      <Typography variant="h5" align="center" gutterBottom>
+        Perfil del Usuario
+      </Typography>
       {userInfo ? (
         <>
-          <div>
-            <p>Nombre: {userInfo.name} {userInfo.paternalLastname} {userInfo.maternalLastname}</p>
-            <p>Email: {userInfo.email}</p>
-            <p>Teléfono: {userInfo.phone}</p>
-            <p>Fecha de Nacimiento: {format(new Date(userInfo.birthDate), 'dd-MM-yyyy')}</p>
-            <p>RUT: {userInfo.rut}</p>
-          </div>
-          <Button 
-            variant="contained"
-            color="info"
-            onClick={() => navigate(`/client/info/${userInfo.id}`)}
-            startIcon={<EditIcon />}
-            >
-              Completar Información Financiera</Button>
-          </>
+          <TableContainer>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell variant="head">Nombre</TableCell>
+                  <TableCell>{`${userInfo.name} ${userInfo.paternalLastname} ${userInfo.maternalLastname}`}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell variant="head">Email</TableCell>
+                  <TableCell>{userInfo.email}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell variant="head">Teléfono</TableCell>
+                  <TableCell>{userInfo.phone}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell variant="head">Fecha de Nacimiento</TableCell>
+                  <TableCell>{format(new Date(userInfo.birthDate), 'dd-MM-yyyy')}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell variant="head">RUT</TableCell>
+                  <TableCell>{userInfo.rut}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Grid container direction="column" alignItems="center" spacing={1} sx={{ marginTop: 2 }}>
+            <Grid item>
+              <Button
+                variant="contained"
+                color="info"
+                onClick={() => navigate(`/client/info/${userInfo.id}`)}
+                startIcon={<EditIcon />}
+                sx={{
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                }}
+              >
+                Información Financiera
+              </Button>
+            </Grid>
+            <Grid item  sx={{ textAlign: "center" }}>
+              <Typography 
+                variant="caption" 
+                color="text.secondary"
+                sx={{ textAlign: 'center' }}
+              >
+                Recuerda completar o actualizar tu información financiera para evaluar tus solicitudes más rápido.
+              </Typography>
+            </Grid>
+          </Grid>
+
+
+
+        </>
       ) : (
-        <p>Cargando la información del usuario...</p>
+        <Typography align="center" color="textSecondary">
+          Cargando la información del usuario...
+        </Typography>
       )}
+    </Paper>
   
       <CreditTable
         credits={credits}

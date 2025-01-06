@@ -12,5 +12,13 @@ const updateTracking = (id, state) => {
     return httpClient.put(`/api/v1/tracking/update/${id}?state=${state}`);
 };
 
+const updateComments = (creditId, comments, state) => {
+    return httpClient.post(`/api/v1/tracking/updateComments/${creditId}`, null, {
+      params: {
+        comments,
+        state,
+      },
+    });
+  };
 
-export default { getTracking , cancelCredit , updateTracking };
+export default { getTracking , cancelCredit , updateTracking , updateComments };

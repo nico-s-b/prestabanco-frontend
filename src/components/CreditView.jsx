@@ -76,6 +76,11 @@ const CreditView = () => {
               onDocumentChange={fetchTracking}
             />
           )}
+          <Typography variant="body1" color="textPrimary" paragraph sx={{ marginTop: 3 , fontStyle: "italic",}}>
+            {tracking?.status === "PENDING" ? 
+            "Una vez estén subidos todos los documentos, la solicitud pasará a evaluación." : 
+            "Todos los documentos han sido subidos: la solicitud está en evaluación."}
+          </Typography>          
         </Grid>
       </Grid>
   

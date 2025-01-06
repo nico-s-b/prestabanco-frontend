@@ -42,6 +42,7 @@ const CreditList = () => {
   }, []);
 
   const handleEvalClick = (id) => {
+    console.log("Evaluar crédito", id);
     navigate(`/credit/eval/${id}`);
   }
 

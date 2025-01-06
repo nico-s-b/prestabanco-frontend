@@ -82,7 +82,7 @@ function App() {
               <Route path="/client/info/:id" element={<ClientInfo />} />
               <Route path="/register" element={<Register />} />
               <Route path="/executive/:id" element={<ExecutiveProfile />} />
-              <Route path="/credit/eval/:id" element={<CreditEval />} />
+              <Route path="/credit/eval/:creditId" element={<CreditEval />} />
               <Route path="/credit/confirm/:id" element={<CreditConfirm />} />
               <Route path="/documents/:id" element={<Documents />} />
               <Route path="*" element={<NotFound />} />

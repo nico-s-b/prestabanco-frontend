@@ -29,4 +29,19 @@ const getTotalCostsByCreditId = (id) => {
     return httpClient.get(`/api/v1/calculations/${id}`);
 }
 
-export default { simulate, restrictions, setTotalCosts , getTotalCostsByCreditId };
+const getInstallment = (data) => {
+    return httpClient.post(`/api/v1/calculations/installment`, data);
+}
+
+const getMaxFinancing = (data) => {
+    return httpClient.post(`/api/v1/calculations/maxFinancing`, data);
+}
+
+export default {
+    simulate,
+    restrictions,
+    setTotalCosts,
+    getTotalCostsByCreditId,
+    getInstallment,
+    getMaxFinancing
+};

@@ -1,19 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box } from "@mui/material";
 import { IconButton, Tooltip } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import InfoIcon from "@mui/icons-material/Info";
-import BlockIcon from "@mui/icons-material/Block";
+import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import { format } from "date-fns";
 import { getCreditState, getCreditType, getRequiredDocumentsCount } from "./CreditUtils";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
+
 
 const CreditTable = ({ credits, trackings, handleEditClick, handleCancelClick , handleConditionsClick , handleRejectClick }) => {
-
+  console.log(trackings);
   const statesCancel = ["INITIALREV", "PENDINGDOCUMENTATION", "EVALUATING", "PREAPROVAL" ,  "FINALAPROVAL"];
   const statesEdit = ["INITIALREV", "PENDINGDOCUMENTATION"];
   const statesConditions = ["PREAPROVAL", "FINALAPROVAL", "APROVED", "INOUTLAY"];
   const statesReject = ["REJECTED"];
+  const statesComment = ["REJECTED", "PENDINGDOCUMENTATION", "APROVED", "INOUTLAY"];
+
+  const [openCommentDialog, setOpenCommentDialog] = useState(false);
+  const [currentComments, setCurrentComments] = useState("");
 
   const CancelButton = ({ onClick }) => (
     <Tooltip title="Cancelar crédito">
@@ -62,6 +68,32 @@ const CreditTable = ({ credits, trackings, handleEditClick, handleCancelClick , 
       </IconButton>
     </Tooltip>
   );
+  
+  const CommentButton = ({ onClick }) => (
+    <Tooltip title="Ver comentarios">
+      <IconButton
+        onClick={onClick}
+        sx={{
+          color: "rgba(255, 193, 7, 0.8)", // Amarillo suave
+          "&:hover": {
+            backgroundColor: "rgba(255, 193, 7, 0.1)",
+          },
+        }}
+      >
+        <NewReleasesIcon />
+      </IconButton>
+    </Tooltip>
+  );
+  
+  const handleOpenCommentDialog = (comments) => {
+    setCurrentComments(comments);
+    setOpenCommentDialog(true);
+  };
+  
+  const handleCloseCommentDialog = () => {
+    setOpenCommentDialog(false);
+    setCurrentComments("");
+  };
   
 
   return (
@@ -113,6 +145,9 @@ const CreditTable = ({ credits, trackings, handleEditClick, handleCancelClick , 
                           gap: 1
                         }}
                       >
+                        {tracking && tracking.message && statesComment.includes(tracking.state) && (
+                          <CommentButton onClick={() => handleOpenCommentDialog(tracking.message)} />
+                        )}                        
                         {tracking && statesConditions.includes(tracking.state) && (
                           <ConditionsButton onClick={() => handleConditionsClick(credit.id)} />
                         )}                        
@@ -138,6 +173,19 @@ const CreditTable = ({ credits, trackings, handleEditClick, handleCancelClick , 
     ) : (
     <p>No posee créditos</p>
     )}
+
+  <Dialog open={openCommentDialog} onClose={handleCloseCommentDialog}>
+    <DialogTitle>Comentarios</DialogTitle>
+    <DialogContent>
+      <Typography>{currentComments || "No hay comentarios disponibles."}</Typography>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleCloseCommentDialog} color="primary">
+        Cerrar
+      </Button>
+    </DialogActions>
+  </Dialog>;
+
   </div>
   );
 };
