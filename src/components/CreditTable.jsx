@@ -84,6 +84,22 @@ const CreditTable = ({ credits, trackings, handleEditClick, handleCancelClick , 
       </IconButton>
     </Tooltip>
   );
+
+  const RejectButton = ({ onClick }) => (
+    <Tooltip title="Rechazar crédito">
+      <IconButton
+        onClick={onClick}
+        sx={{
+          color: "error.main",
+          "&:hover": {
+            backgroundColor: "rgba(220, 0, 78, 0.1)",
+          },  
+        }}
+      >
+        <DeleteIcon />
+      </IconButton>
+    </Tooltip>
+  );
   
   const handleOpenCommentDialog = (comments) => {
     setCurrentComments(comments);
@@ -184,7 +200,7 @@ const CreditTable = ({ credits, trackings, handleEditClick, handleCancelClick , 
         Cerrar
       </Button>
     </DialogActions>
-  </Dialog>;
+  </Dialog>
 
   </div>
   );
