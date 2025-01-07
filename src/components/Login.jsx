@@ -110,6 +110,7 @@ const Login = () => {
             variant="contained"
             color="primary"
             type="submit"
+            size="large"
           >
             INICIAR SESIÓN
           </Button>

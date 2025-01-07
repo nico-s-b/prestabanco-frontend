@@ -1,16 +1,18 @@
 import React, { useState , useEffect } from "react";
-import { Grid, Box, Typography, Select, MenuItem, TextField , Button} from "@mui/material";
+import { Grid, Box, Typography, Select, MenuItem, TextField , Button, Tooltip} from "@mui/material";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 import calculationService from "../services/calculation.service";
 import evaluationService from "../services/evaluation.service";
 import clientService from "../services/client.service";
+import { set } from "date-fns";
 
 const EvalRules16 = ({ 
   creditInfo, 
   clientInfo, 
   evaluationData, 
   documents, 
+  evaluation,
   handleEvaluationChange, 
   handleDownloadDocument, 
   handleClientInfoChange, 
@@ -21,6 +23,9 @@ const EvalRules16 = ({
   const [age, setAge] = useState(null);
   const [income, setIncome] = useState(null);
   const [client, setClient] = useState(null);
+  const [decisionButtons, setDecisionButtons] = useState(false);
+  const [rejectButton, setRejectButton] = useState(false);
+  const [approveButton, setApproveButton] = useState(false);
 
   const percentage35income = income
   ? (income * 0.35).toLocaleString("es-CL", { style: "currency", currency: "CLP" })
@@ -71,23 +76,71 @@ const EvalRules16 = ({
     }
   }, [creditInfo, clientInfo]);
   
+  useEffect(() => {
+    console.log(evaluationData);
   
-
+    const verifyEvaluations = () => {
+      const ruleRegex = /^R[1-7]$/; // Expresión regular para coincidir con R1, R2, ..., R7
+  
+      for (const key in evaluationData) {
+        if (ruleRegex.test(key) && evaluationData[key] === "PENDING") {
+          setDecisionButtons(false);
+          setApproveButton(false);
+          setRejectButton(false);
+          return;
+        }
+      }
+      for (const key in evaluationData) {
+        if (ruleRegex.test(key) && evaluationData[key] === "FAIL") {
+          setRejectButton(true);
+          setApproveButton(false);
+          setDecisionButtons(true);
+          return;
+        }
+      }
+      setApproveButton(true);
+      setRejectButton(false);
+      setDecisionButtons(true);
+    };
+  
+    if (evaluationData) {
+      verifyEvaluations();
+    }
+  }, [evaluationData]);
+  
+  
   return (
 
-    <Box sx={{ flexGrow: 1, padding: 2 }}>
+    <Box sx={{ flexGrow: 1, padding: 0 }}>
       {/* Subtítulo */}
-      <Typography variant="h6" align="center" sx={{ marginBottom: 2 }}>
+      <Typography variant="h6" align="center" sx={{ marginBottom: 1 }}>
         Evaluando reglas 1 a 6
       </Typography>
 
+      <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+
       {/* Grilla */}
-      <Grid container spacing={2}>
+      <Grid 
+        container 
+        spacing={1}
+        sx={{
+          display: "flex",
+          justifyContent: "center", // Centra horizontalmente los elementos
+          alignItems: "center",     // Centra verticalmente los elementos si es necesario
+          maxWidth: "1200px",       // Define un ancho máximo para la grilla
+          margin: "0 auto",         // Centra horizontalmente el contenedor en la página
+          padding: "16px",          // Agrega espacio interno
+          width: "100%",            // Asegura que la grilla use el ancho completo disponible
+        }}
+      >
+
         {/* Fila 1 */}
         {/* Regla 1 */}
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6} display="flex" justifyContent="center">
           <Box
             sx={{
+              width: "100%",          // Asegura que cada tarjeta use el espacio permitido
+              maxWidth: "450px",              
               border: "1px solid #ccc",
               borderRadius: 2,
               padding: 2,
@@ -149,12 +202,22 @@ const EvalRules16 = ({
 
             {/* Tercera fila: Selector para el estado */}
             <Box sx={{ marginBottom: 1 }}>
-              <Typography variant="body2" marginTop={2}>¿Es la cuota menor al 35% del ingreso?</Typography>
+            <Typography variant="body2" marginTop={1} marginBottom={1}>
+                ¿Es la cuota menor al 35% del ingreso?</Typography>
               <Select
                 value={evaluationData.R1 || "PENDING"}
                 onChange={(e) => handleEvaluationChange("R1", e.target.value)} 
-                fullWidth
                 size="small"
+                sx={{
+                  border: "2px solid #1976d2", // Borde azul
+                  borderRadius: "4px",         // Bordes redondeados
+                  "&:hover": {
+                    borderColor: "#115293",    // Azul más oscuro al pasar el mouse
+                  },
+                  "&.Mui-focused": {
+                    borderColor: "#0d47a1",    // Azul más oscuro al enfocar
+                  },
+                }}                
               >
                 <MenuItem value="PENDING">Pendiente</MenuItem>
                 <MenuItem value="SUCCESS">Cumple</MenuItem>
@@ -179,9 +242,11 @@ const EvalRules16 = ({
         </Grid>
 
         {/* Regla 2 */}
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6} display="flex" justifyContent="center">
         <Box
             sx={{
+              width: "100%",          // Asegura que cada tarjeta use el espacio permitido
+              maxWidth: "450px",              
               border: "1px solid #ccc",
               borderRadius: 2,
               padding: 2,
@@ -245,12 +310,21 @@ const EvalRules16 = ({
 
             {/* Tercera fila: Selector para el estado */}
             <Box sx={{ marginBottom: 1 }}>
-              <Typography variant="body2" marginTop={2}>¿Es adecuado el historial crediticio del cliente?</Typography>
+              <Typography variant="body2" marginTop={1} marginBottom={1}>¿Es adecuado el historial crediticio del cliente?</Typography>
               <Select
                 value={evaluationData.R2 || "PENDING"}
                 onChange={(e) => handleEvaluationChange("R2", e.target.value)} 
-                fullWidth
                 size="small"
+                sx={{
+                  border: "2px solid #1976d2", // Borde azul
+                  borderRadius: "4px",         // Bordes redondeados
+                  "&:hover": {
+                    borderColor: "#115293",    // Azul más oscuro al pasar el mouse
+                  },
+                  "&.Mui-focused": {
+                    borderColor: "#0d47a1",    // Azul más oscuro al enfocar
+                  },
+                }}                
               >
                 <MenuItem value="PENDING">Pendiente</MenuItem>
                 <MenuItem value="SUCCESS">Cumple</MenuItem>
@@ -277,9 +351,11 @@ const EvalRules16 = ({
 
         {/* Fila 2 */}
         {/* Regla 3 */}
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6} display="flex" justifyContent="center">
         <Box
             sx={{
+              width: "100%",          // Asegura que cada tarjeta use el espacio permitido
+              maxWidth: "450px",              
               border: "1px solid #ccc",
               borderRadius: 2,
               padding: 2,
@@ -354,7 +430,7 @@ const EvalRules16 = ({
 
             {/* Tercera fila: Selector para el estado */}
             <Box sx={{ marginBottom: 1 }}>
-            <Typography variant="body2" marginTop={2}>
+            <Typography variant="body2" marginTop={1} marginBottom={1}>
               {clientInfo.isEmployee
                 ? "¿Su antigüedad laboral es de al menos 1 año?"
                 : "¿Sus ingresos demuestran estabilidad financiera?"}
@@ -363,7 +439,16 @@ const EvalRules16 = ({
               <Select
                 value={evaluationData.R3 || "PENDING"}
                 onChange={(e) => handleEvaluationChange("R3", e.target.value)} 
-                fullWidth
+                sx={{
+                  border: "2px solid #1976d2", // Borde azul
+                  borderRadius: "4px",         // Bordes redondeados
+                  "&:hover": {
+                    borderColor: "#115293",    // Azul más oscuro al pasar el mouse
+                  },
+                  "&.Mui-focused": {
+                    borderColor: "#0d47a1",    // Azul más oscuro al enfocar
+                  },
+                }}
                 size="small"
               >
                 <MenuItem value="PENDING">Pendiente</MenuItem>
@@ -382,7 +467,7 @@ const EvalRules16 = ({
                   onClick={() => handleDownloadDocument("INCOMECERTIFY")}
                 >
                   Certificado de ingresos
-                </Button>v
+                </Button>
 
               </Box>
             )}
@@ -390,9 +475,11 @@ const EvalRules16 = ({
         </Grid>
         
         {/* Regla 4 */}
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6} display="flex" justifyContent="center">
         <Box
             sx={{
+              width: "100%",          // Asegura que cada tarjeta use el espacio permitido
+              maxWidth: "450px",              
               border: "1px solid #ccc",
               borderRadius: 2,
               padding: 2,
@@ -445,14 +532,23 @@ const EvalRules16 = ({
             
             {/* Tercera fila: Selector para el estado */}
             <Box sx={{ marginBottom: 1 }}>
-            <Typography variant="body2" marginTop={2}>
+            <Typography variant="body2" marginTop={1} marginBottom={1}>
               ¿Es la deuda total menor al 50% del ingreso?
             </Typography>
 
               <Select
                 value={evaluationData.R4 || "PENDING"}
                 onChange={(e) => handleEvaluationChange("R4", e.target.value)} 
-                fullWidth
+                sx={{
+                  border: "2px solid #1976d2", // Borde azul
+                  borderRadius: "4px",         // Bordes redondeados
+                  "&:hover": {
+                    borderColor: "#115293",    // Azul más oscuro al pasar el mouse
+                  },
+                  "&.Mui-focused": {
+                    borderColor: "#0d47a1",    // Azul más oscuro al enfocar
+                  },
+                }}
                 size="small"
               >
                 <MenuItem value="PENDING">Pendiente</MenuItem>
@@ -488,9 +584,11 @@ const EvalRules16 = ({
 
         {/* Fila 3 */}
         {/* Regla 5 */}
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6} display="flex" justifyContent="center">
         <Box
             sx={{
+              width: "100%",          // Asegura que cada tarjeta use el espacio permitido
+              maxWidth: "450px",              
               border: "1px solid #ccc",
               borderRadius: 2,
               padding: 2,
@@ -547,14 +645,23 @@ const EvalRules16 = ({
             
             {/* Tercera fila: Selector para el estado */}
             <Box sx={{ marginBottom: 1 }}>
-            <Typography variant="body2" marginTop={2}>
-              ¿Es el monto solicitado menor al monto máximo de financiamiento?
+            <Typography variant="body2" marginTop={1} marginBottom={1}>
+              ¿Es el monto solicitado menor al monto máximo?
             </Typography>
 
               <Select
                 value={evaluationData.R5 || "PENDING"}
                 onChange={(e) => handleEvaluationChange("R5", e.target.value)} 
-                fullWidth
+                sx={{
+                  border: "2px solid #1976d2", // Borde azul
+                  borderRadius: "4px",         // Bordes redondeados
+                  "&:hover": {
+                    borderColor: "#115293",    // Azul más oscuro al pasar el mouse
+                  },
+                  "&.Mui-focused": {
+                    borderColor: "#0d47a1",    // Azul más oscuro al enfocar
+                  },
+                }}
                 size="small"
               >
                 <MenuItem value="PENDING">Pendiente</MenuItem>
@@ -566,9 +673,11 @@ const EvalRules16 = ({
         </Grid>
 
         {/* Regla 6 */}
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6} display="flex" justifyContent="center">
         <Box
             sx={{
+              width: "100%",          // Asegura que cada tarjeta use el espacio permitido
+              maxWidth: "450px",              
               border: "1px solid #ccc",
               borderRadius: 2,
               padding: 2,
@@ -617,14 +726,23 @@ const EvalRules16 = ({
            
             {/* Tercera fila: Selector para el estado */}
             <Box sx={{ marginBottom: 1 }}>
-            <Typography variant="body2" marginTop={2}>
+            <Typography variant="body2" marginTop={1} marginBottom={1}>
               ¿Es la edad menor a 70 años al término del crédito?
             </Typography>
 
               <Select
                 value={evaluationData.R6 || "PENDING"}
                 onChange={(e) => handleEvaluationChange("R6", e.target.value)} 
-                fullWidth
+                sx={{
+                  border: "2px solid #1976d2", // Borde azul
+                  borderRadius: "4px",         // Bordes redondeados
+                  "&:hover": {
+                    borderColor: "#115293",    // Azul más oscuro al pasar el mouse
+                  },
+                  "&.Mui-focused": {
+                    borderColor: "#0d47a1",    // Azul más oscuro al enfocar
+                  },
+                }}
                 size="small"
               >
                 <MenuItem value="PENDING">Pendiente</MenuItem>
@@ -637,9 +755,11 @@ const EvalRules16 = ({
 
         {/* Fila 4 */}
         {/* Regla 7 */}
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6} display="flex" justifyContent="center">
         <Box
             sx={{
+              width: "100%",          // Asegura que cada tarjeta use el espacio permitido
+              maxWidth: "450px",              
               border: "1px solid #ccc",
               borderRadius: 2,
               padding: 2,
@@ -682,14 +802,24 @@ const EvalRules16 = ({
         
             {/* Segunda fila: Selector para el estado */}
             <Box sx={{ marginBottom: 1 }}>
-            <Typography variant="body2" marginTop={0}>
+            <Typography variant="body2" marginTop={1} marginBottom={1}>
               ¿Es adecuada la capacidad de ahorro del cliente?
             </Typography>
 
               <Select
                 value={evaluationData.R7 || "PENDING"}
                 onChange={(e) => handleEvaluationChange("R7", e.target.value)} 
-                fullWidth
+                width="100%"
+                sx={{
+                  border: "2px solid #1976d2", // Borde azul
+                  borderRadius: "4px",         // Bordes redondeados
+                  "&:hover": {
+                    borderColor: "#115293",    // Azul más oscuro al pasar el mouse
+                  },
+                  "&.Mui-focused": {
+                    borderColor: "#0d47a1",    // Azul más oscuro al enfocar
+                  },
+                }}                
                 size="small"
               >
                 <MenuItem value="PENDING">Pendiente</MenuItem>
@@ -706,9 +836,11 @@ const EvalRules16 = ({
           </Box>           
         </Grid>
         
-        <Grid item xs={6}>
+        <Grid item xs={12} md={6} display="flex" justifyContent="center">
           <Box 
             sx={{ 
+              width: "100%",          // Asegura que cada tarjeta use el espacio permitido
+              maxWidth: "450px",              
               border: "1px solid #ccc", 
               borderRadius: 2,
               padding: 2, 
@@ -717,56 +849,89 @@ const EvalRules16 = ({
               gap: 0, 
             }}
           >
-          <Typography variant="body2">
-            Decisión sobre solicitud:
-          </Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }} align="center">
+              Decisión sobre solicitud:
+            </Typography>
             {/* Primera línea de botones */}
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 2 }}>
-              <Button
-                variant="contained"
-                onClick={() => handleOpenDialog("approve")}
-                sx={{
-                  backgroundColor: "green",
-                  color: "white",
-                  "&:hover": { backgroundColor: "darkgreen" },
-                  fontSize: "0.8rem",
-                }}
+              <Tooltip
+                title={!approveButton || !decisionButtons 
+                  ? "Para pre-aprobar, la solicitud debe cumplir todas las reglas" 
+                  : ""}
+                placement="top"
               >
-                Pre-aprobar
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => handleOpenDialog("reject")}
-                sx={{
-                  backgroundColor: "red",
-                  color: "white",
-                  "&:hover": { backgroundColor: "darkred" },
-                  fontSize: "0.8rem",
-                }}
+                <span> {/* Necesario para que el botón deshabilitado sea accesible */}
+                  <Button
+                    variant="contained"
+                    onClick={() => handleOpenDialog("approve")}
+                    sx={{
+                      backgroundColor: "green",
+                      color: "white",
+                      "&:hover": { backgroundColor: "darkgreen" },
+                      fontSize: "0.8rem",
+                    }}
+                    disabled={!approveButton || !decisionButtons}
+                  >
+                    Pre-aprobar
+                  </Button>
+                </span>
+              </Tooltip>
+              <Tooltip
+                title={!rejectButton || !decisionButtons 
+                  ? "Si una solicitud falla al menos una regla, debe ser rechazada" 
+                  : ""}
+                placement="top"
               >
-                Rechazar
-              </Button>
+                <span>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleOpenDialog("reject")}
+                    sx={{
+                      backgroundColor: "red",
+                      color: "white",
+                      "&:hover": { backgroundColor: "darkred" },
+                      fontSize: "0.8rem",
+                    }}
+                    disabled={!rejectButton || !decisionButtons}
+                  >
+                    Rechazar
+                  </Button>
+                </span>
+              </Tooltip>
             </Box>
 
             {/* Segunda línea: Botón centrado */}
             <Box sx={{ display: "flex", justifyContent: "center" }}>
-              <Button
-                variant="contained"
-                onClick={() => handleOpenDialog("pending")}
-                sx={{
-                  backgroundColor: "goldenrod",
-                  color: "white",
-                  "&:hover": { backgroundColor: "darkgoldenrod" },
-                  fontSize: "0.8rem",
-                }}
+              <Tooltip
+                title={!decisionButtons 
+                  ? "Todas las reglas deben ser evaluadas antes de poder solicitar más información" 
+                  : ""}
+                placement="bottom"
               >
-                Solicitar más Información
-              </Button>
+                <span>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleOpenDialog("pending")}
+                    sx={{
+                      backgroundColor: "goldenrod",
+                      color: "white",
+                      "&:hover": { backgroundColor: "darkgoldenrod" },
+                      fontSize: "0.8rem",
+                    }}
+                    disabled={!decisionButtons}
+                  >
+                    Solicitar más Información
+                  </Button>
+                </span>
+              </Tooltip>
             </Box>
           </Box>
         </Grid>
 
+
       </Grid>
+      </Box>
+
     </Box>
   );
 };

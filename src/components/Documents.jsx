@@ -19,12 +19,14 @@ import {
   DialogActions,
 } from "@mui/material";
 import { documentTypeMap } from "./CreditUtils";
+import { set } from "date-fns";
 
-const Documents = ({ creditId, creditType, onDocumentChange }) => {
+const Documents = ({ creditId, creditType, onDocumentChange , needAdditionalDocs}) => {
   const [documents, setDocuments] = useState([]);
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
-  
+  const [excedsSize, setExcedsSize] = useState(false);
+  const maxFileSize = 5*1024*1024; // 5 MB
   const documentTypeMapReversed = Object.fromEntries(
     Object.entries(documentTypeMap).map(([key, value]) => [value, key])
   );
@@ -49,7 +51,9 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
   const missingDocuments = neededDocuments.filter(
     (docLabel) => !uploadedDocumentTypes.includes(documentTypeMap[docLabel])
   );
-
+  if (needAdditionalDocs) {
+    missingDocuments.push("Documentos adicionales");
+  }
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [documentToEdit, setDocumentToEdit] = useState(null);
@@ -57,12 +61,18 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
 
   const handleEditDocument = async (docId, newFile) => {
     try {
+      setExcedsSize(newFile.size > maxFileSize);
+      if (excedsSize) {
+        alert("El archivo excede el tamaño máximo permitido.");
+        return;
+      }
       await documentService.replaceDocument(docId, newFile);
       alert("Documento reemplazado exitosamente.");
       if (onDocumentChange) onDocumentChange();
     } catch (err) {
       console.error("Error al reemplazar documento:", err);
       setError("No se pudo reemplazar el documento.");
+      setExcedsSize(false);
     }
   };
   
@@ -115,7 +125,6 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
   const handleUpload = async (event) => {
     event.preventDefault();
     setError("");
-
     try {
       const documentType = documentTypeMap[selectedDocumentLabel]; // Convierte el nombre humano al tipo enum
       await documentService.save(creditId, documentType, selectedFile);
@@ -142,6 +151,7 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
   };
 
   const handleCancelUpload = () => {
+    setExcedsSize(false);
     setSelectedFile(null);
     setSelectedDocumentLabel("");
   };
@@ -228,19 +238,20 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
           variant="body2"
           sx={{
             fontStyle: "italic",
-            color: "text.secondary",
+            color: excedsSize ? "error.main" : "text.secondary", 
           }}
         >
           {!selectedDocumentLabel && "Elige el tipo de documento que deseas subir:"}
           {selectedDocumentLabel && !selectedFile && "Elige un archivo para subir"}
-          {selectedDocumentLabel && selectedFile && "Haz clic en 'Subir Documento' para completar la acción"}
+          {selectedDocumentLabel && selectedFile && !excedsSize && "Haz clic en 'Subir Documento' para completar la acción"}
+          {excedsSize && "El archivo excede el tamaño máximo permitido. Por favor, elige un archivo más pequeño."}
         </Typography>
         </Grid>
+
         {/* Fila 1: Select y Input de archivo */}
         <Grid item xs={12} md={6}>
         <FormControl 
           fullWidth 
-          //error={!selectedDocumentLabel} 
           sx={{
             "& .MuiOutlinedInput-root": {
               "& fieldset": {
@@ -259,7 +270,7 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
           <Select
             labelId="document-type-label"
             value={selectedDocumentLabel}
-            onChange={(e) => setSelectedDocumentLabel(e.target.value)}
+            onChange={(e) => {setSelectedDocumentLabel(e.target.value)}}
             displayEmpty
           >
             {missingDocuments.map((docLabel) => (
@@ -273,30 +284,52 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <Button
-            variant="outlined"
-            component="label"
-            fullWidth
-            sx={{
-              backgroundColor: selectedDocumentLabel ? "primary.main" : "inherit",
-              color: selectedDocumentLabel ? "white" : "inherit",
-              borderColor: selectedDocumentLabel ? "primary.main" : "inherit",
-              "&:hover": {
-                backgroundColor: selectedDocumentLabel ? "primary.dark" : "inherit",
-                borderColor: selectedDocumentLabel ? "primary.dark" : "inherit",
-              },
+        <Button
+          variant="outlined"
+          component="label"
+          fullWidth
+          sx={{
+            marginTop: 2,
+            backgroundColor: selectedDocumentLabel ? "primary.main" : "inherit",
+            color: selectedDocumentLabel ? "white" : "inherit",
+            borderColor: selectedDocumentLabel ? "primary.main" : "inherit",
+            "&:hover": {
+              backgroundColor: selectedDocumentLabel ? "primary.dark" : "inherit",
+              borderColor: selectedDocumentLabel ? "primary.dark" : "inherit",
+            },
+          }}
+          disabled={!selectedDocumentLabel}
+        >
+          Elegir archivo
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                const isTooLarge = file.size > maxFileSize;
+                setExcedsSize(isTooLarge);
+                handleFileChange(file);
+                console.log("Tamaño del archivo:", file.size);
+                if (isTooLarge) {
+                  console.error(`El archivo excede el tamaño máximo permitido de ${maxFileSize} bytes.`);
+                }
+              }
             }}
-            disabled={!selectedDocumentLabel}
+            ref={fileInputRef}
+            hidden
+          />
+        </Button>
+
+
+          {/* Texto del tamaño máximo permitido */}
+          <Typography
+            variant="caption"
+            sx={{ display: "block", marginTop: 1, color: "text.secondary", textAlign: "center" }}
           >
-            Elegir archivo
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={(e) => handleFileChange(e.target.files[0])}
-              ref={fileInputRef}
-              hidden
-            />
-          </Button>
+            Tamaño máximo permitido: 5 MB.
+          </Typography>
+
         </Grid>
 
         {/* Fila 2: Botón de subir documentos */}
@@ -306,7 +339,7 @@ const Documents = ({ creditId, creditType, onDocumentChange }) => {
             color="primary"
             onClick={handleUpload}
             startIcon={<UploadFileIcon />}
-            disabled={!selectedFile || !selectedDocumentLabel}
+            disabled={!selectedFile || !selectedDocumentLabel || excedsSize}
             sx={{ 
               marginTop: 2, 
               marginLeft: "auto", 

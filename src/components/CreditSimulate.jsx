@@ -51,7 +51,6 @@ const CreditSimulate = () => {
         annualRate
       );
       setSimulationResult(response.data);
-      console.log("Resultado:", { response });
     } catch (error) {
       setError("Error al simular el crédito. Verifica los valores ingresados.");
       console.error("Simulación fallida:", error);
@@ -151,13 +150,19 @@ const CreditSimulate = () => {
       <Grid item xs={12} md={6}>
         <div>
           <Typography variant="h6" gutterBottom>
-            Resultados de la Simulación
+            Resultados de la Simulación de Cuota Mensual
           </Typography>
           {/* Contenedor principal de resultados */}
           <Grid container spacing={1}>
             {/* Fila: Cuota mínima */}
             <Grid item xs={4}>
-              <Typography variant="body1">Cuota mínima posible:</Typography>
+              <Typography variant="body1"
+                sx={{
+                  color: simulationResult ? "text.primary" : "text.disabled",
+                  opacity: simulationResult ? 1 : 0.5,
+                }}              
+              >
+                Cuota mínima posible:</Typography>
             </Grid>
             <Grid item xs={3}>
               <Typography
@@ -184,7 +189,13 @@ const CreditSimulate = () => {
 
             {/* Fila: Cuota solicitada */}
             <Grid item xs={4}>
-              <Typography variant="body1">Cuota interés escogido:</Typography>
+              <Typography variant="body1"
+                sx={{
+                  color: simulationResult ? "text.primary" : "text.disabled",
+                  opacity: simulationResult ? 1 : 0.5,
+                }}              
+              >
+                Cuota interés escogido:</Typography>
             </Grid>
             <Grid item xs={3}>
               <Typography
@@ -211,7 +222,13 @@ const CreditSimulate = () => {
 
             {/* Fila: Cuota máxima */}
             <Grid item xs={4}>
-              <Typography variant="body1">Cuota máxima posible:</Typography>
+              <Typography variant="body1"
+                sx={{
+                  color: simulationResult ? "text.primary" : "text.disabled",
+                  opacity: simulationResult ? 1 : 0.5,
+                }}              
+              >
+                Cuota máxima posible:</Typography>
             </Grid>
             <Grid item xs={3}>
               <Typography

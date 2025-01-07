@@ -5,10 +5,13 @@ import { fetchRestrictions , getCreditType } from "./CreditUtils";
 const CreditForm = ({   
   creditType, setCreditType, loanPeriod, setLoanPeriod, creditMount,
   setCreditMount, propertyValue, setPropertyValue, annualRate, setAnnualRate,
-  restrictions, setRestrictions, isValuesEntered, setIsValuesEntered, error, 
+  restrictions, setRestrictions, isValuesEntered, setIsValuesEntered, 
  setIsPeriodMountEntered, initialValues = {} , isRequest, setIsRequest, isLoggedIn
 }) => {
   const [activeField, setActiveField] = useState(null);
+  const [errorProp, setErrorProp] = useState("");
+  const [errorPeriod, setErrorPeriod] = useState("");
+  const [errorMount, setErrorMount] = useState("");
 
   useEffect(() => {
     if (isValuesEntered) {
@@ -23,7 +26,6 @@ const CreditForm = ({
       getRestrictions();
     }
   }, [isValuesEntered, creditType, propertyValue, setRestrictions]);
-
   const [isSlideInitialized, setIsSlideInitialized] = useState(false);
 
   useEffect(() => {
@@ -98,8 +100,8 @@ const CreditForm = ({
       const numericValue = parseInt(unformattedValue, 10);
       
       if (max && numericValue > max) {
-        alert(`El valor no puede ser mayor al máximo permitido (${max.toLocaleString("es-CL")})`);
-        setter(max.toString());
+        //alert(`El valor no puede ser mayor al máximo permitido (${max.toLocaleString("es-CL")})`);
+        //setter(max.toString());
       } else {
         setter(unformattedValue);
       }
@@ -160,11 +162,21 @@ const CreditForm = ({
           label="Valor de la Propiedad"
           value={formatNumber(propertyValue)}
           onChange={(e) => {
-            handleChange(e, setPropertyValue);
-            handleTypePropertyChange();
-            handleValuesEntered();
+            const maxPropertyValue = 2147483647;
+            const rawValue = e.target.value.replace(/\D/g, "");
+            const numericValue = parseInt(rawValue, 10);
+        
+            if (!isNaN(numericValue) && numericValue <= maxPropertyValue) {
+              setErrorProp(""); // Limpia el mensaje de error si el valor es válido
+              handleChange(e, setPropertyValue);
+              handleTypePropertyChange();
+              handleValuesEntered();
+            } else if (numericValue > maxPropertyValue) {
+              setErrorProp(`El valor máximo permitido es ${maxPropertyValue.toLocaleString("es-CL")}`);
+            }
           }}
           required
+      
           sx={{
             "& .MuiOutlinedInput-root": {
               fieldset: {
@@ -174,7 +186,9 @@ const CreditForm = ({
                 borderColor: !propertyValue ? "#1976d2" : "primary", // Azul cuando está enfocado
               },
             },
-          }}       
+          }}
+          error={!!errorProp}
+          helperText={errorProp}
           disabled={isRequest && !isLoggedIn}
         />
       </Grid>
@@ -188,12 +202,23 @@ const CreditForm = ({
           type="number"
           label="Período del Préstamo (años)"
           value={loanPeriod}
-          onChange={(e) => { handleChange(e, setLoanPeriod, restrictions.maxLoanPeriod); handleValuesEntered(); }}
+          onChange={(e) => {
+            const value = parseInt(e.target.value, 10);
+            if (!isNaN(value) && value <= restrictions.maxLoanPeriod) {
+              setLoanPeriod(value);
+              setErrorPeriod(""); // Limpia el error si el valor es válido
+            } else {
+              setErrorPeriod(`El valor no puede ser mayor a ${restrictions.maxLoanPeriod}`);
+            }
+          }}
           inputProps={{
             min: 1,
             max: restrictions.maxLoanPeriod,
           }}
           required
+          error={Boolean(errorPeriod)}
+          helperText={errorPeriod || ""}
+          disabled={!isValuesEntered}
           sx={{
             "& .MuiOutlinedInput-root": {
               fieldset: {
@@ -203,8 +228,7 @@ const CreditForm = ({
                 borderColor: !loanPeriod ? "#1976d2" : "primary", // Azul cuando está enfocado
               },
             },
-          }}                
-          disabled={!isValuesEntered} 
+          }}
         />
         <Tooltip 
           title={
@@ -229,8 +253,24 @@ const CreditForm = ({
           fullWidth
           label="Monto del Crédito"
           value={formatNumber(creditMount)}
-          onChange={(e) => { handleChange(e, setCreditMount, restrictions.maxFinancingMount); handleValuesEntered(); }}
+
+          onChange={(e) => {
+            const maxFinancingMount = restrictions.maxFinancingMount;
+            const rawValue = e.target.value.replace(/\D/g, "");
+            const numericValue = parseInt(rawValue, 10);
+        
+            if (!isNaN(numericValue) && numericValue <= maxFinancingMount) {
+              setErrorMount(""); // Limpia el mensaje de error si el valor es válido
+              handleChange(e, setCreditMount, restrictions.maxFinancingMount);
+              handleValuesEntered();
+            } else if (numericValue > maxFinancingMount) {
+              setErrorMount(`El valor máximo permitido es ${maxFinancingMount.toLocaleString("es-CL")}`);
+            }
+          }}
+
           required
+          error={Boolean(errorMount)}
+          helperText={errorMount || ""}
           sx={{
             "& .MuiOutlinedInput-root": {
               fieldset: {

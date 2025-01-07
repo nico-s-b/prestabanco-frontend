@@ -1,17 +1,16 @@
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box } from "@mui/material";
 import { IconButton, Tooltip } from "@mui/material";
+import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import InfoIcon from "@mui/icons-material/Info";
-import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import { format } from "date-fns";
 import { getCreditState, getCreditType, getRequiredDocumentsCount } from "./CreditUtils";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
 
 
 const CreditTable = ({ credits, trackings, handleEditClick, handleCancelClick , handleConditionsClick , handleRejectClick }) => {
-  console.log(trackings);
   const statesCancel = ["INITIALREV", "PENDINGDOCUMENTATION", "EVALUATING", "PREAPROVAL" ,  "FINALAPROVAL"];
   const statesEdit = ["INITIALREV", "PENDINGDOCUMENTATION"];
   const statesConditions = ["PREAPROVAL", "FINALAPROVAL", "APROVED", "INOUTLAY"];

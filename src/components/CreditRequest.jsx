@@ -69,6 +69,7 @@ const CreditRequest = () => {
         userId
       );
       const creditId = response.data.id;
+      alert("Solicitud de crédito creada exitosamente. Redirigiendo al crédito...");
       navigate(`/credit/${creditId}`);
     } catch (error) {
       setError("No se pudo realizar la solicitud de crédito. Inténtalo nuevamente.");
@@ -180,7 +181,7 @@ const CreditRequest = () => {
         {creditType && (
           <>
             <Typography variant="body1" sx={{ mr: 2 }}>
-              Para continuar con el proceso necesitarás los siguientes documentos:
+              Después de crear una solicitud, necesitarás los siguientes documentos para continuar el proceso:
             </Typography>
             <List>
               {textNeededDocuments(creditType).map((doc, index) => (
@@ -245,7 +246,7 @@ const CreditRequest = () => {
             </TableRow>
             <TableRow>
               <TableCell>Tasa de interés anual:</TableCell>
-              <TableCell>{annualRate}%</TableCell>
+              <TableCell>{parseFloat(annualRate).toFixed(1)}%</TableCell>
             </TableRow>
             <TableRow>
               <TableCell>Plazo:</TableCell>

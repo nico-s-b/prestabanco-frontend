@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import React, { useState } from "react";
 import clientService from "../services/client.service";
 import executiveService from "../services/executive.service";
 import { Grid, TextField, Select, MenuItem, Button, Typography } from "@mui/material";
 import "./../styles/Register.css";
+
 
 const UserRegister = () => {
   const [data, setData] = useState({
@@ -19,6 +20,9 @@ const UserRegister = () => {
     pass: ""
   });
 
+  const today = format(new Date(), "yyyy-MM-dd");
+  const minDate = format(new Date("1900-01-01"), "yyyy-MM-dd");
+
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -27,6 +31,43 @@ const UserRegister = () => {
     setData((prevData) => ({
       ...prevData,
       [name]: value
+    }));
+  };
+
+  const [errors, setErrors] = useState({});
+  const handleTextInputChange = (e, regex) => {
+    const { name, value } = e.target;
+  
+    if (!regex.test(value) && value !== "") {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "Sólo se permiten letras, espacios, apóstrofes y guiones.",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleDateChange = (e) => {
+    const { name, value } = e.target;
+  
+    if (value < minDate) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: `La fecha no puede ser anterior al ${minDate}.`,
+      }));
+    } else if (value > today) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: `La fecha no puede ser posterior al ${today}.`,
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, [name]: "" })); 
+    }
+    setData((prev) => ({
+      ...prev,
+      [name]: value,
     }));
   };
 
@@ -54,7 +95,7 @@ const UserRegister = () => {
 
   return (
     <div className="user-register">
-      <Typography variant="h4" align="center" gutterBottom>
+      <Typography variant="h4" align="center" gutterBottom marginTop={4} marginBottom={4}>
         Registro de Usuario
       </Typography>
       <form onSubmit={handleSubmit}>
@@ -96,10 +137,12 @@ const UserRegister = () => {
               fullWidth
               name="name"
               value={data.name}
-              onChange={handleChange}
+              onChange={(e) => handleTextInputChange(e, /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/)}
               placeholder="Nombre"
               required
               label="Nombre"
+              error={!!errors.name}
+              helperText={errors.name || ""}
             />
           </Grid>
 
@@ -109,10 +152,12 @@ const UserRegister = () => {
               fullWidth
               name="paternalLastname"
               value={data.paternalLastname}
-              onChange={handleChange}
+              onChange={(e) => handleTextInputChange(e, /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/)}
               placeholder="Apellido Paterno"
               required
               label="Apellido Paterno"
+              error={!!errors.paternalLastname}
+              helperText={errors.paternalLastname || ""}
             />
           </Grid>
 
@@ -122,12 +167,15 @@ const UserRegister = () => {
               fullWidth
               name="maternalLastname"
               value={data.maternalLastname}
-              onChange={handleChange}
+              onChange={(e) => handleTextInputChange(e, /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/)}
               placeholder="Apellido Materno"
               required
               label="Apellido Materno"
+              error={!!errors.maternalLastname}
+              helperText={errors.maternalLastname || ""}
             />
           </Grid>
+
 
           {/* Email */}
           <Grid item xs={12} md={6}>
@@ -163,14 +211,18 @@ const UserRegister = () => {
               type="date"
               name="birthDate"
               value={data.birthDate}
-              onChange={handleChange}
+              onChange={(e) => handleDateChange(e)}
               required
               label="Fecha de Nacimiento"
               InputLabelProps={{
                 shrink: true,
               }}
+              inputProps={{ max: today, min: minDate }}
+              error={!!errors.birthDate} // Muestra error si existe
+              helperText={errors.birthDate || ""} // Mensaje de error
             />
           </Grid>
+
 
           {/* Contraseña */}
           <Grid item xs={12} md={6}>
@@ -187,9 +239,9 @@ const UserRegister = () => {
           </Grid>
 
           {/* Botón de Registro */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} alignContent={"center"}
+          sx = {{ display: "flex", justifyContent: "center" }}>
             <Button
-              fullWidth
               variant="contained"
               color="primary"
               type="submit"

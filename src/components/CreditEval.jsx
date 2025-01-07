@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate , useParams } from "react-router-dom";
 import { Grid, Box, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
-import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from '@mui/icons-material/Save';
 import CreditInfo from "./CreditInfo";
 import creditService from "../services/credit.service";
 import evaluationService from "../services/evaluation.service";
@@ -99,6 +99,7 @@ const CreditEval = () => {
       } catch (err) {
         console.error("Error al obtener información:", err);
         setError("Hubo un error al cargar la información del crédito.");
+        console.log("Error value:", error);
       } finally {
         setIsLoading(false);
       }
@@ -208,6 +209,7 @@ const CreditEval = () => {
   };
   
 
+
   const handleOpenDialog = (action) => {
     setOpenDialog(action);
     setComments(""); // Limpia los comentarios al abrir un nuevo diálogo
@@ -235,20 +237,32 @@ return (
       </Grid>
 
     {/* Mensajes de carga o error */}
-    <Grid item xs={12} sx={{ width: "100%", maxWidth: 800 }}>
-      {isLoading ? (
-        <Typography>Cargando...</Typography>
-      ) : error ? (
-        <Typography color="error">{error}</Typography>
+    <Grid item xs={12} sx={{ width: "100%", maxWidth: 1200 }}>
+    {isLoading ? (
+      <Typography>Cargando...</Typography>
+    ) : error ? (
+      <Box textAlign="center">
+        <Typography color="error" variant="h6" sx={{ marginBottom: 2 }}>
+          {error}
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/credit/all")}
+        >
+          Volver a la lista de créditos
+        </Button>
+      </Box>
       ) : (
         <>
           {/* Renderizar componente según la vista actual */}
-          <Box sx={{ width: "100%", maxWidth: 800, margin: "0 auto" }}>
+          <Box sx={{ width: "100%", maxWidth: 1200, margin: "0 auto" }}>
             {currentView === "rules16" ? (
               <EvalRules16
                 creditInfo={creditInfo}
                 clientInfo={clientInfo}
                 evaluationData={evaluationData}
+                evaluation={evaluation}
                 documents={documents}
                 handleEvaluationChange={handleEvaluationChange}
                 handleDownloadDocument={handleDownloadDocument}
@@ -275,38 +289,71 @@ return (
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: "center", // Centra el contenido como base
+              alignItems: "center",
               marginTop: 2,
               width: "100%",
-              maxWidth: 800,
+              maxWidth: 1200,
+              position: "relative", // Para permitir posicionamiento absoluto relativo a este contenedor
             }}
           >
+            {/* Botón Ir a Regla / Volver a Reglas */}
             <Button
               variant="outlined"
               onClick={toggleView}
-              sx={{ margin: "0 auto" }}
+              sx={{
+                position: "absolute", // Posiciona este botón de manera absoluta
+                left: "20%",             // Lo coloca a la izquierda del contenedor
+              }}
             >
               {currentView === "rules16" ? "Ir a Regla 7" : "Volver a Reglas 1 a 6"}
             </Button>
+
+            {/* Botón Guardar */}
             <Button
               variant="contained"
               color="primary"
+              size="large"
               onClick={handleSave}
-              sx={{ margin: "0 auto" }}
+              sx={{
+                margin: "0 auto", // Mantiene el botón centrado
+              }}
+              startIcon={<SaveIcon />}
             >
               Guardar Evaluación
             </Button>
           </Box>
 
+
           {/* Información del Crédito */}
-          <Grid item xs={12} sx={{ marginTop: 4 }}>
-            <Typography variant="h5">Información del Crédito</Typography>
-            {creditInfo && tracking ? (
-              <CreditInfo creditInfo={creditInfo} tracking={tracking} />
-            ) : (
-              <Typography>Cargando la información del crédito...</Typography>
-            )}
+          <Grid 
+            item 
+            xs={12} 
+            sx={{ 
+              marginTop: 4, 
+              maxWidth: "80%", // Limita el ancho máximo al 80% del contenedor padre
+              margin: "0 auto", // Centra horizontalmente el contenido
+            }}
+          >
+            <Typography variant="h5" sx={{ marginBottom: 2 }} marginTop={4}>
+              Información del Crédito
+            </Typography>
+            <Box
+              sx={{
+                width: "100%",          // Asegura que el contenido ocupe todo el ancho permitido
+                maxWidth: "800px",      // Define un ancho máximo para la tabla
+                margin: "0 auto",       // Centra horizontalmente
+                overflowX: "auto",      // Agrega scroll horizontal si es necesario
+              }}
+            >
+              {creditInfo && tracking ? (
+                <CreditInfo creditInfo={creditInfo} tracking={tracking} />
+              ) : (
+                <Typography>Cargando la información del crédito...</Typography>
+              )}
+            </Box>
           </Grid>
+
         </>
       )}
     </Grid>
@@ -352,7 +399,7 @@ return (
           Confirmar
         </Button>
       </DialogActions>
-    </Dialog>;
+    </Dialog>
 
   </Grid>
 

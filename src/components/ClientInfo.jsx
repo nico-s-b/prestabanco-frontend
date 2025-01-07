@@ -9,9 +9,12 @@ import {
   RadioGroup,
   Radio,
   FormControlLabel,
+  Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import evaluationService from "../services/evaluation.service";
+import clientService from "../services/client.service";
+import InfoIcon from '@mui/icons-material/Info';
 
 const ClientInfo = () => {
   const navigate = useNavigate();
@@ -29,15 +32,17 @@ const ClientInfo = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const today = format(new Date(), "yyyy-MM-dd");
+  const [birthDate, setBirthDate] = useState("");
 
-  // Función para formatear números para visualización
   const formatNumber = (value) => {
-    return value ? parseInt(value, 10).toLocaleString("es-CL") : "";
+    return value !== null && value !== undefined
+      ? parseInt(value, 10).toLocaleString("es-CL")
+      : "";
   };
+  
 
-  // Función para desformatear números para almacenamiento
   const unformatNumber = (value) => {
-    return value.replace(/\D/g, ""); // Elimina caracteres no numéricos
+    return value.replace(/\D/g, ""); 
   };
 
   // Maneja cambios en campos, separando lógica de valores monetarios
@@ -78,7 +83,10 @@ const ClientInfo = () => {
             isEmployee: !!clientInfo.data.isEmployee, // Convierte a booleano
             monthlyIncome: clientInfo.data.monthlyIncome || "",
             lastTwoYearIncome: clientInfo.data.lastTwoYearIncome || "",
-            totalDebt: clientInfo.data.totalDebt || "",
+            totalDebt:
+            clientInfo.data.totalDebt !== null && clientInfo.data.totalDebt !== undefined
+              ? clientInfo.data.totalDebt
+              : "",
             accountBalance: clientInfo.data.accountBalance || "",
             lastDebtDate: clientInfo.data.lastDebtDate
               ? format(parseISO(clientInfo.data.lastDebtDate), "yyyy-MM-dd")
@@ -90,6 +98,11 @@ const ClientInfo = () => {
               ? format(parseISO(clientInfo.data.accountStartDate), "yyyy-MM-dd")
               : "",
           });
+        }
+        const birthDateResponse = await clientService.getBirthdate(userId);
+        if (birthDateResponse.data) {
+          const formattedBirthDate = format(parseISO(birthDateResponse.data), "yyyy-MM-dd");
+          setBirthDate(formattedBirthDate);
         }
       } catch (error) {
         console.error("Error al cargar datos:", error);
@@ -110,6 +123,7 @@ const ClientInfo = () => {
     };
 
     try {
+      console.log(formattedClientInfoData);
       await evaluationService.updateClientInfo(formattedClientInfoData);
       alert("Datos actualizados correctamente");
       navigate(`/client/${userId}`);
@@ -157,7 +171,7 @@ const ClientInfo = () => {
                   onChange={handleInputChange}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
-                  inputProps={{ max: today }}
+                  inputProps={{ max: today , min: birthDate}}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -194,23 +208,37 @@ const ClientInfo = () => {
 
           {/* Situación financiera */}
           <Grid item xs={12}>
-            <Typography variant="h6">Situación Financiera</Typography>
+            <Box display="flex" alignItems="center">
+              <Typography variant="h6" sx={{ marginRight: 1 }}>
+                Situación Financiera
+              </Typography>
+              <Tooltip title="Si no posee deudas, ingrese el valor 0.">
+                <InfoIcon color="inherit" />
+              </Tooltip>
+            </Box>
           </Grid>
+
 
           <Grid item xs={12}>
             <TextField
               label="Monto mensual en deudas"
               name="totalDebt"
               type="text"
-              value={formatNumber(clientInfoData.totalDebt)}
-              onChange={(e) => handleChange(e, (value) => setClientInfoData((prev) => ({
-                ...prev,
-                totalDebt: value,
-              })))}
+              value={clientInfoData.totalDebt !== null && clientInfoData.totalDebt !== undefined 
+                ? formatNumber(clientInfoData.totalDebt) 
+                : ""}
+              onChange={(e) => handleChange(e, (value) =>
+                setClientInfoData((prev) => ({
+                  ...prev,
+                  totalDebt: value === "" ? null : unformatNumber(value), // Convierte cadena vacía a null
+                }))
+              )}
               fullWidth
               required
             />
           </Grid>
+
+
           <Grid item xs={12}>
             <TextField
               label="Fecha Última Deuda"
@@ -219,10 +247,9 @@ const ClientInfo = () => {
               value={clientInfoData.lastDebtDate}
               onChange={handleInputChange}
               fullWidth
-              required
               InputLabelProps={{ shrink: true }}
-              inputProps={{ max: today }}
-            />
+              inputProps={{ max: today , min: birthDate}}
+              />
           </Grid>
 
           {/* Ahorros */}
@@ -254,8 +281,8 @@ const ClientInfo = () => {
               fullWidth
               required
               InputLabelProps={{ shrink: true }}
-              inputProps={{ max: today }}
-            />
+              inputProps={{ max: today , min: birthDate}}
+              />
           </Grid>
 
           <Grid item xs={12} textAlign="center">

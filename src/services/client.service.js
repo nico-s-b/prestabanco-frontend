@@ -16,4 +16,8 @@ const registerClient = (data) => {
   return httpClient.post("/api/v1/clients/", data);
 };
 
-export default { getAllClients,  getClientById , updateClients, registerClient };
+const getBirthdate = (id) => {
+  return httpClient.get(`/api/v1/clients/${id}/birthdate`);
+};
+
+export default { getAllClients,  getClientById , updateClients, registerClient, getBirthdate };

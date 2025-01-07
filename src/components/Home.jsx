@@ -27,7 +27,7 @@ const Home = () => {
   };
 
   const handleRegisterClick = () => {
-    navigate("/client/register");
+    navigate("/register");
   };
 
   const handleRequestClick = () => {

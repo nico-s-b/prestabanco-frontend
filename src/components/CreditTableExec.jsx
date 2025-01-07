@@ -1,10 +1,44 @@
-import React from "react";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
+import React , {useState} from "react";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button , Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
+import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import { format } from "date-fns";
 import { getCreditState, getCreditType, getRequiredDocumentsCount } from "./CreditUtils";
 
 const CreditTableExec = ({ credits, trackings, handleEvalClick }) => {
+  const evaluationStates = ["EVALUATING","FINALAPROVAL","APROVED"]
+  const statesComment = ["REJECTED", "PENDINGDOCUMENTATION", "APROVED", "INOUTLAY"];
+
+  const [openCommentDialog, setOpenCommentDialog] = useState(false);
+  const [currentComments, setCurrentComments] = useState("");
+  const CommentButton = ({ onClick }) => (
+    <Tooltip title="Ver comentarios">
+      <IconButton
+        onClick={onClick}
+        sx={{
+          color: "rgba(255, 193, 7, 0.8)", // Amarillo suave
+          "&:hover": {
+            backgroundColor: "rgba(255, 193, 7, 0.1)",
+          },
+        }}
+      >
+        <NewReleasesIcon />
+      </IconButton>
+    </Tooltip>
+  );
+
+  const handleOpenCommentDialog = (comments) => {
+    setCurrentComments(comments);
+    setOpenCommentDialog(true);
+  };
+  
+  const handleCloseCommentDialog = () => {
+    setOpenCommentDialog(false);
+    setCurrentComments("");
+  };  
+
   return (
     <div>
       {credits && credits.length > 0 ? (
@@ -46,18 +80,29 @@ const CreditTableExec = ({ credits, trackings, handleEvalClick }) => {
                     </TableCell>
 
                     <TableCell>
-                    <Button
-                        variant="contained"
-                        color="info"
-                        size="small"
-                        onClick={() => handleEvalClick(credit.id)}
-                        style={{ marginLeft: "0.5rem" }}
-                        startIcon={<EditIcon />}
-                    >
-                        Evaluar
-                    </Button>
-
+                      <Box
+                        sx={{
+                          display: "flex", // Alinea los elementos en fila
+                          alignItems: "center", // Centra verticalmente los botones
+                          gap: 1, // Espaciado entre botones
+                        }}
+                      >
+                        {tracking && tracking.message && statesComment.includes(tracking.state) && (
+                          <CommentButton onClick={() => handleOpenCommentDialog(tracking.message)} />
+                        )}
+                        <Button
+                          variant="contained"
+                          color="info"
+                          size="small"
+                          onClick={() => handleEvalClick(credit.id)}
+                          startIcon={<EditIcon />}
+                          disabled={tracking ? !evaluationStates.includes(tracking.state) : true}
+                        >
+                          Evaluar
+                        </Button>
+                      </Box>
                     </TableCell>
+
                     
                 </TableRow>
                 );
@@ -65,6 +110,19 @@ const CreditTableExec = ({ credits, trackings, handleEvalClick }) => {
             </TableBody>
         </Table>
         </TableContainer>
+
+        <Dialog open={openCommentDialog} onClose={handleCloseCommentDialog}>
+          <DialogTitle>Comentarios</DialogTitle>
+          <DialogContent>
+            <Typography>{currentComments || "No hay comentarios disponibles."}</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseCommentDialog} color="primary">
+              Cerrar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
     </>
     ) : (
     <p>No posee créditos</p>

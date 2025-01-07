@@ -32,6 +32,7 @@ export const documentTypeMap = {
   "Plan de negocios": "BUSINESSPLAN",
   "Presupuesto de remodelación": "REMODELINGBUDGET",
   "Certificado de avalúo actualizado": "UPDATEDVALUATIONCERTIFY",
+  "Documentos adicionales": "EXTRADOCUMENTATION",
 };
 
 export const DocumentType = {

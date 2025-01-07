@@ -1,19 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , useRef  } from "react";
 import { useNavigate , useParams } from "react-router-dom";
-import EditIcon from "@mui/icons-material/Edit";
 import { Grid, Button, Typography } from "@mui/material";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import creditService from "../services/credit.service";
 import calculationService from "../services/calculation.service";
 import trackingService from "../services/tracking.service";
 import CreditInfo from "./CreditInfo";
+import CheckIcon from '@mui/icons-material/Check';
+import CancelIcon from '@mui/icons-material/Cancel';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
 
 const CreditConfirm = () => {
   const navigate = useNavigate();
-  const [creditInfo, setCreditInfo] = useState(null);
   const { id } = useParams();
+  const [creditInfo, setCreditInfo] = useState(null);
   const [tracking, setTracking] = useState(null);
   const [totalCosts, setTotalCosts] = useState(null);
+  const isCalled = useRef(false); // Usar useRef para persistir la bandera
+
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [dialogAction, setDialogAction] = useState(""); 
+
   const fetchCreditInfo = async () => {
     try {
       const creditResponse = await creditService.getCreditById(id);
@@ -33,6 +46,9 @@ const CreditConfirm = () => {
   };
 
   const fetchOrCalculateTotalCosts = async () => {
+    if (isCalled.current) return; // Evitar múltiples llamados
+    isCalled.current = true;
+
     try {
       const costsResponse = await calculationService.getTotalCostsByCreditId(id);
       setTotalCosts(costsResponse.data);
@@ -75,29 +91,40 @@ const CreditConfirm = () => {
       fetchOrCalculateTotalCosts();
     }
   }, [creditInfo, tracking]);
-
   
-  const handleAcceptClick = async () => {
-    try {
+  const handleOpenConfirmDialog = (action) => {
+    setDialogAction(action);
+    setConfirmDialogOpen(true);
+  };
+
+  const handleCloseConfirmDialog = () => {
+    setConfirmDialogOpen(false);
+    setDialogAction("");
+  };
+
+  const handleConfirmAction = async () => {
+    handleCloseConfirmDialog();
+    if (dialogAction === "accept") {
+      try {
         await trackingService.updateTracking(id, "FINALAPROVAL");
         alert("Crédito aprobado exitosamente.");
         navigate("/home");
-    } catch (error) {
+      } catch (error) {
         console.error("Error al aprobar:", error);
+      }
+    } else if (dialogAction === "cancel") {
+      const userId = localStorage.getItem("userId");
+      try {
+        await trackingService.updateTracking(id, "CANCELLED");
+        navigate(`/client/${userId}`);
+        alert("El crédito ha sido cancelado exitosamente.");
+      } catch (error) {
+        console.error("Error al cancelar el crédito:", error);
+        alert("Hubo un error al cancelar el crédito.");
+      }
     }
   };
 
-  const handleCancel = async (id) => {
-    const userId = localStorage.getItem("userId");
-    try {
-      await trackingService.updateTracking(id, "CANCELLED");
-      navigate(`/client/${userId}`);
-      alert("El crédito ha sido cancelado exitosamente.");
-    } catch (error) {
-      console.error("Error al cancelar el crédito:", error);
-      alert("Hubo un error al cancelar el crédito.");
-    }
-  };
 
   return (
     <div>
@@ -165,31 +192,80 @@ const CreditConfirm = () => {
                 </Table>
               </TableContainer>
             </div>
-            <Grid container justifyContent="center" sx={{ marginTop: 4 }}>
 
+            <Grid container justifyContent="center" sx={{ marginTop: 4, gap: 2 }}>
+              {/* Botón de aceptar */}
               <Button
                 variant="contained"
-                color="info"
-                size="small"
-                onClick={() => handleAcceptClick(id)}
-                style={{ marginLeft: "0.5rem" }}
-
+                color="success"
+                size="medium"
+                onClick={() => handleOpenConfirmDialog("accept")}
+                startIcon={<CheckIcon />} 
+                sx={{
+                  paddingX: 3,
+                  paddingY: 1.5,
+                  "&:hover": {
+                    backgroundColor: "darkgreen",
+                  },
+                }}
               >
                 Aceptar Condiciones
               </Button>
 
+              {/* Botón de cancelar */}
               <Button
                 variant="contained"
                 color="error"
-                size="small"
-                onClick={() => handleCancel(id)}
-                style={{ marginLeft: "0.5rem" }}
-
+                size="medium"
+                onClick={() => handleOpenConfirmDialog("cancel")}
+                startIcon={<CancelIcon />} 
+                sx={{
+                  paddingX: 3,
+                  paddingY: 1.5,
+                  "&:hover": {
+                    backgroundColor: "darkred",
+                  },
+                }}
               >
                 Cancelar Crédito
               </Button>
-
             </Grid>
+
+            {/* Diálogo de confirmación */}
+            <Dialog
+              open={confirmDialogOpen}
+              onClose={handleCloseConfirmDialog}
+              aria-labelledby="confirmation-dialog-title"
+              aria-describedby="confirmation-dialog-description"
+            >
+              <DialogTitle id="confirmation-dialog-title">
+                {dialogAction === "accept"
+                  ? "Confirmar Aceptación"
+                  : "Confirmar Cancelación"}
+              </DialogTitle>
+              <DialogContent>
+                <DialogContentText id="confirmation-dialog-description">
+                  {dialogAction === "accept"
+                    ? "¿Estás seguro de que deseas aceptar las condiciones del crédito? Esta acción es irreversible."
+                    : "¿Estás seguro de que deseas cancelar el crédito? Esta acción es irreversible."}
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseConfirmDialog} color="secondary">
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleConfirmAction}
+                  color={dialogAction === "accept" ? "success" : "error"}
+                  autoFocus
+                >
+                  Confirmar
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+
+
           </>
           ) : (
             <p>Cargando los costos totales...</p>
