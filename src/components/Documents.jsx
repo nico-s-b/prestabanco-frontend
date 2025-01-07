@@ -108,7 +108,7 @@ const Documents = ({ creditId, creditType, onDocumentChange , needAdditionalDocs
   const confirmDelete = async () => {
     try {
       await documentService.deleteDocument(selectedDocumentId);
-      alert("Documento eliminado exitosamente.");
+      //alert("Documento eliminado exitosamente.");
       setDocuments((prev) => prev.filter((doc) => doc.id !== selectedDocumentId)); 
       if (onDocumentChange) onDocumentChange();
       setOpenConfirmDialog(false);

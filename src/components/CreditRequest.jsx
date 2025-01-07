@@ -69,7 +69,7 @@ const CreditRequest = () => {
         userId
       );
       const creditId = response.data.id;
-      alert("Solicitud de crédito creada exitosamente. Redirigiendo al crédito...");
+      
       navigate(`/credit/${creditId}`);
     } catch (error) {
       setError("No se pudo realizar la solicitud de crédito. Inténtalo nuevamente.");
